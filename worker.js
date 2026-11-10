@@ -51,10 +51,10 @@ tick.port1.onmessage = () => {
   scheduled = false;
   while (queue.length) answer(queue.shift());
   const t0 = performance.now();
-  const running = slice(budget);
+  const ran = slice(budget);            // instructions run; 0 when paused or held back by the speed limit
   const dt = performance.now() - t0;
-  if (running) budget = Math.max(2000, Math.min(200000, Math.round(budget * (30 / Math.max(dt, 1)))));
-  if (running) schedule(); else setTimeout(schedule, 50);
+  if (ran >= budget) budget = Math.max(2000, Math.min(200000, Math.round(budget * (30 / Math.max(dt, 1)))));
+  if (ran > 0) schedule(); else setTimeout(schedule, 10);
 };
 
 function answer(m) {

@@ -26,7 +26,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from board import ANALOG_SIGNALS, PIN_NOTES, PORTS, ViperBoard, parse_rules  # noqa: E402
 from cpu16 import OPS, CpuStopped, IllegalInstruction  # noqa: E402
-from machine import ROM_SIZE, Machine  # noqa: E402
+from machine import INSNS_PER_SECOND, ROM_SIZE, Machine  # noqa: E402
 import emu  # noqa: E402
 
 LISTING = HERE.parent / "recovered" / "instructions.tsv"
@@ -55,6 +55,12 @@ class Session:
         self.lock = threading.RLock()
         self.running = True
         self.rate = 0.0
+        # Emulation speed as a fraction of real time (the PCM's own clock),
+        # or None for as fast as this machine can go. Enforced as a token
+        # bucket so a pause or slow frame does not cause a burst afterwards.
+        self.sim_rate = None
+        self.requests_waiting = 0
+        self._tokens, self._tok_t = 0.0, time.time()
         path = pathlib.Path(rom_path)
         self.load(path.read_bytes(), path.name)
         # Start from believable sensor readings rather than every pin at 0 V,
@@ -150,32 +156,48 @@ class Session:
             self.stop_reason = ""
 
     def _loop(self):
-        last_t, last_i = time.time(), 0
         while True:
-            if not self.running:
-                time.sleep(0.02)
-                last_t, last_i = time.time(), self.m.cpu.icount
-                continue
-            with self.lock:
-                self._advance(4000 if (self.pending or self.awaiting) else 40000)
-                now, ic = time.time(), self.m.cpu.icount
-            if now - last_t >= 0.5:
-                self.rate = max(0.0, (ic - last_i) / (now - last_t))
-                last_t, last_i = now, ic
-            time.sleep(0.001)
+            if not self.slice(40000):
+                time.sleep(0.005 if self.running else 0.02)
+            else:
+                # Step aside only while a page request is waiting for the
+                # lock; a fixed sleep after every slice cost about half the
+                # speed, and none at all starved the page.
+                time.sleep(0.002 if self.requests_waiting else 0)
+
+    def _allowance(self, want):
+        """How many instructions the speed limit allows right now."""
+        now = time.time()
+        if self.sim_rate is None:
+            self._tokens, self._tok_t = 0.0, now
+            return want
+        per_s = self.sim_rate * INSNS_PER_SECOND
+        self._tokens = min(self._tokens + (now - self._tok_t) * per_s, max(per_s * 0.1, 64))
+        self._tok_t = now
+        n = int(min(want, self._tokens))
+        if n < min(want, 64):
+            return 0
+        self._tokens -= n
+        return n
 
     def slice(self, insns=40000):
-        """Run one bounded piece of emulation; for hosts without threads."""
+        """Run one bounded piece of emulation. Returns the instructions run:
+        0 when paused or held back by the speed limit."""
+        ran = 0
         if self.running:
-            with self.lock:
-                self._advance(4000 if (self.pending or self.awaiting) else insns)
+            n = self._allowance(4000 if (self.pending or self.awaiting) else insns)
+            if n:
+                with self.lock:
+                    before = self.m.cpu.icount
+                    self._advance(n)
+                    ran = self.m.cpu.icount - before
         now, ic = time.time(), self.m.cpu.icount
         if not self.running:
             self._rate_t, self._rate_i = now, ic
         elif now - self._rate_t >= 0.5:
             self.rate = max(0.0, (ic - self._rate_i) / (now - self._rate_t))
             self._rate_t, self._rate_i = now, ic
-        return self.running
+        return ran
 
     def _advance(self, n):
         m = self.m
@@ -406,6 +428,8 @@ class Session:
             return {
                 "running": self.running, "stop_reason": self.stop_reason,
                 "icount": c.icount, "rate": round(self.rate),
+                "realtime": round(self.rate / INSNS_PER_SECOND, 3),
+                "sim_rate": self.sim_rate,
                 "pc": "%05X" % pc, "function": fn,
                 "regs": {
                     "A": "%02X" % c.a, "B": "%02X" % c.b, "E": "%04X" % c.e,
@@ -537,6 +561,14 @@ class Session:
             elif cmd == "erase_codes":
                 # The handler wants the request repeated before it acts.
                 self.sci_send(b"\x17" * 32)
+            elif cmd == "sim_rate":
+                v = body.get("value")
+                if v is not None:
+                    v = float(v)
+                    if not 0.001 <= v <= 1.0:
+                        raise ValueError("speed must be between 0.1 % and 100 % of real time, or unlimited")
+                self.sim_rate = v
+                self._tokens, self._tok_t = 0.0, time.time()
             elif cmd == "clear_coverage":
                 self.m.cov = bytearray(ROM_SIZE)
             else:
@@ -553,6 +585,7 @@ def api(s, method, path, query="", body=b"", filename="upload.bin"):
         return code, "application/json", obj if isinstance(obj, bytes) else json.dumps(obj).encode()
 
     q = {k: v[0] for k, v in parse_qs(query).items()}
+    s.requests_waiting += 1
     try:
         if method == "GET":
             if path in STATIC:
@@ -591,6 +624,8 @@ def api(s, method, path, query="", body=b"", filename="upload.bin"):
         return ok({"error": "not found"}, 404)
     except (ValueError, KeyError) as e:
         return ok({"error": str(e)}, 400)
+    finally:
+        s.requests_waiting -= 1
 
 
 class Handler(BaseHTTPRequestHandler):
