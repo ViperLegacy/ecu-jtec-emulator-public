@@ -1,0 +1,1399 @@
+{
+  "source": "Derived from ecu-manual/research/sci-session.md, sci-commands-10-1B.md, sci-commands-1C-25.md, sci-commands-26-2F.md and recovered/SCI_ACQUISITION_NOTES.txt (static analysis of VIP_2A03; no vehicle or module was connected).",
+  "session": [
+    "Everything here comes from offline analysis of the VIP_2A03 image. Nothing was tested on hardware; framing, pacing and replies are unverified on a real module, and the notes say the findings are specific to this image, not a rule for all JTEC revisions.",
+    "Normal SCI rate is 7812.5 baud. High-speed mode is 62500 baud, the keyed sequence runs at 976.6 baud and the ISO 9141-2 path at about 10417 baud. These figures assume a 16.000 MHz system clock, which the research rates as strong but inferred; the 8x ratios between the rates are verified.",
+    "Echo rule in normal mode: the PCM echoes the command byte and then each argument byte as it arrives. Wait for each echo before sending the next byte. The handler's reply bytes come after the last echo.",
+    "Arguments: each command has a fixed argument count of 0 to 3 bytes (table at ROM ECC2). Any byte value is accepted as an argument; the handler runs once the last one is in. Commands with no arguments run immediately after the command-byte echo.",
+    "Command bytes 10 to 2F reach a handler. Byte 30 is echoed but is not a real command (see entry 30).",
+    "A byte below 10 sent when no command is pending is not echoed; the PCM replies with a single 00.",
+    "A byte of 31 or above sent when no command is pending is dropped silently: no echo and no reply.",
+    "Refusals and aborts often send nothing after the echoes. A tool must use a bounded timeout and treat a missing reply byte as a refusal or failed read, not as data.",
+    "Inter-byte timeout: every received byte arms a countdown of 14 fast-group passes, about 158 ms (strong, clock-dependent). If a multi-byte request is left unfinished that long, the PCM does a full session reset: pending command and arguments are dropped, actuator-test and override flags in F8128 are cleared, session bits 80/40/20/01 of F8109 are cleared, and the rate returns to 7812.5 baud. After a completed command the timeout is disarmed.",
+    "Resync: any receive error (overrun, noise, framing, parity) causes the same full session reset. To resynchronise, stay silent for more than about 158 ms at 7812.5 baud and start again with a command byte.",
+    "The full session reset also clears the security failure count and retry delay used by command 2C. It does not clear the security-granted bit (F8109 bit 10).",
+    "High-speed mode is entered with command 12: the 12 echo is sent at 7812.5 baud, then the PCM switches to 62500 baud. No inter-byte timeout runs in high-speed mode. It is left by sending FE (echoed, then back to 7812.5 baud), or silently by an out-of-range table index, a page byte of 10 or above, or a receive error. See entries 12, F2, F4, F5, F6 and FE.",
+    "Security has two routes. Route 1: command 2B returns a seed, and command 2C with the key (seed x 4 + 9018, low 16 bits) sets the security-granted bit F8109 bit 10. Route 2: the keyed sequence after command 1B writes the whole of F8109 directly with no seed or key (see entry 1B).",
+    "Security-granted (F8109 bit 10) is required by command 18, command 23 sub-function 05, command 27 for protected EEPROM entries and command 29. A refusal for missing security is F1 (or 03 in command 23). Nothing clears the bit at run time except a rewrite of the whole byte by another keyed sequence; a reset clears it. Whether key-off resets the CPU is not settled.",
+    "There is no engine-speed, ignition or security gate before dispatch. All such checks are made per command and are listed in each command's hints.",
+    "Common reply codes: 00 refused or not applicable (also the unlocked result of 2C), 01 to 04 graded refusals, F0 done (23) or out of range (27, 29), F1 security not granted, E0 fault erase done, E1 command 18 running, E2 EEPROM write done, E5 RAM write done, 17 memory-monitor refusal.",
+    "Commands 27 and 28 answer later, from a background poller. Wait for their result byte before sending another request; starting a new command while one is pending can cause the next byte to be dispatched with incomplete arguments (traced, not tested).",
+    "When the PCM's ISO routing input (port F bit 1) is set, every received byte goes to the ISO 9141-2 generic OBD-II frame parser instead of this command parser, and none of the commands below are reachable. What drives that input electrically is not settled.",
+    "Timing in real units is not fully settled. sci-session.md infers a 512 microsecond tick (fast group 11.26 ms, slow group 1.000 s); the command files leave the tick length open. Durations in this file are given in passes or visits first, with seconds only as that inference."
+  ],
+  "commands": [
+    {
+      "id": "10",
+      "name": "Read stored fault code list",
+      "handler": "00CEA2",
+      "args": [],
+      "reply": "Echo 10, then up to 8 fault identifier bytes, then FE, then a checksum. The checksum is the low byte of 10 + all code bytes + FE, so the command byte counts in the sum. With no codes stored the full reply is 10 FE 0E.",
+      "summary": "Sends the stored fault codes from the report-order list at F8868..F886F. Nothing is changed.",
+      "hints": [
+        "There are no preconditions: no engine, security or speed check.",
+        "The list stops at the first 00 entry, so at most 8 codes are sent.",
+        "The bytes are the PCM's internal fault identifiers, not P-codes.",
+        "No FD byte is sent, unlike the published Chrysler convention."
+      ],
+      "effects": "read-only",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "10",
+          "note": "read the stored fault code list",
+          "observed": "echoed, reply FE 0E"
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "name": "Read pending observation ids",
+      "handler": "00CEDC",
+      "args": [],
+      "reply": "Echo 11, then two bytes: the fault ids held in the two shared observation slots, F8163 and then F8165.",
+      "summary": "Returns the two fault ids currently being observed before a fault is recorded. The counts that go with them are not sent.",
+      "hints": [
+        "There are no preconditions.",
+        "A slot that is not in use reads as whatever F8163 or F8165 currently holds; the firmware decrements and clears these slots itself."
+      ],
+      "effects": "read-only",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Action verified; the name (pending fault list) is strong, from the manual and the public convention.",
+      "examples": [
+        {
+          "hex": "11",
+          "note": "read the two pending observation ids",
+          "observed": "echoed, reply 00 00"
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "name": "Enter high-speed mode",
+      "handler": "00CEF0",
+      "args": [],
+      "reply": "Echo 12 only, sent at 7812.5 baud before the rate change.",
+      "summary": "Switches the SCI link to high-speed mode at 62500 baud. In that mode each byte is a mode byte or a RAM offset, not a normal command.",
+      "hints": [
+        "There are no preconditions.",
+        "After the echo the PCM waits for the transmitter to finish, changes rate and flushes its receiver. Change your own rate after you have received the echo.",
+        "The command also sets the scan-tool-session flag F8109 bit 01, which cancels and blocks fault-code blinking.",
+        "No inter-byte timeout runs in high-speed mode; the PCM stays there until it gets FE, an out-of-range request or a receive error.",
+        "In high-speed mode use F2 (direct page read), F4 or F5 (table read), F6 (page select) and FE (exit). Any other byte is treated as an offset and is answered with one RAM byte, not echoed.",
+        "The baud figures assume a 16 MHz clock; the 8x rate ratio itself is verified."
+      ],
+      "effects": "changes mode",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; baud values depend on the inferred 16 MHz clock; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "12",
+          "note": "enter high-speed mode; the link changes to 62500 baud after the echo. Send FE at 62500 baud to return.",
+          "observed": "echoed, no data"
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "name": "Actuator test",
+      "handler": "00CF28",
+      "args": [
+        {
+          "name": "test",
+          "bytes": 1,
+          "hint": "00 = stop the running test; 01..44 = test number (see hints); 45 and above are refused",
+          "default": "00"
+        }
+      ],
+      "reply": "Accepted: echo 13, echo of the test number, then the test number again as an acknowledgement. Refused: the two echoes, then 00. Stop (13 00): the two echoes, then 00, and for some tests one more byte holding the old test number.",
+      "summary": "Starts, replaces or stops a timed actuator test. While a test runs, the selected output is toggled or commanded at a fixed step and several normal control routines are suspended.",
+      "hints": [
+        "Precondition: the engine must not have turned since key-on (F80CE bit 10 clear). If it has, a running test is stopped without a 00, and with no test running the command is refused with 00.",
+        "There is no security check and no vehicle-speed check.",
+        "Tests that send a co-processor command also need room in the command queue (count F80E4 below 9); otherwise they are refused.",
+        "Starting any test except 0A clears the event-loss request F8106 bit 40, and any test except 0A and 43 also clears F8106 bit 80. With the engine off this energises the ASD and fuel outputs.",
+        "A test steps every 128 fast-group passes (about 1.4 s if the fast group is 11.26 ms); the first step comes 0 to 127 passes after the start.",
+        "A test lasts 420 slow-group visits, about 291 steps (about 7 minutes if the slow group is 1.000 s), unless stopped earlier. The command research file leaves seconds unresolved.",
+        "A test ends when its timer expires, when the engine turns, when 13 00 is received, or when a new 13 n replaces it. A replaced test is NOT restored to its normal state.",
+        "Pitfall: 13 00 does not send a stop command for the coil tests (01, 02, 03, 23, 24), the injector tests (04, 05, 06, 1D, 1E, 1F, 25, 26, 30, 31) or the purge test (0B). The co-processor is left with the last command. Whether the co-processor times out by itself is not known.",
+        "On 13 00 the tests 01-06, 07, 0B, 1D-1F, 23-26, 30, 31, 3B and 3C send the old test number as an extra byte after the 00.",
+        "While a test is active these normal routines are suspended: event-loss service, EVAP purge, EGR, A/C clutch, radiator fans, cruise servo, transmission dispatch, the non-running idle-air target, and three unidentified jobs.",
+        "When fan or A/C tests are restored, only the request bit is set back; the paired bit is left as the test last put it.",
+        "Tests 01, 02, 03, 23, 24: ignition coils 1 to 5 (01=coil 1, 02=coil 2, 03=coil 3, 23=coil 4, 24=coil 5). Each step sends a co-processor coil command. Coil identity is strong, not verified.",
+        "Tests 04, 05, 06, 1D, 1E, 1F, 25, 26, 30, 31: injectors 1 to 10 in that order. Each step sends a co-processor injector command. Injector identity is strong, not verified.",
+        "Test 07: idle-air stepper. Each step sets the requested position to D2 or to 1, alternately. There is no restore; the end of the test toggles once more and normal idle control then corrects from there.",
+        "Test 08: radiator fan relays, a repeating cycle over the two fan request bits. Restore sets the first request bit.",
+        "Test 09: A/C clutch relay toggle.",
+        "Test 0A: ASD relay toggle (event-loss request F8106 bit 40).",
+        "Test 0B: EVAP purge. Every step and the restore send purge value 80; nothing resets it to zero, the normal purge routine resends its own value later.",
+        "Test 0C: cruise servo. Sets the servo supply and cycles the vent and vacuum bits through three states.",
+        "Test 0D: generator field toggle (co-processor command with payload 86 on, 06 off).",
+        "Test 0E: sends a co-processor command with payload 11 each step and 00 on restore. The output it drives is not identified.",
+        "Tests 0F, 16, 41, 43: refused in this image because of an option byte (ROM 270B bit 80 set). In other calibrations 0F toggles the shift indicator bit, 16 the reverse lockout, 41 the bit used by test 32, 43 a combined pattern.",
+        "Test 10: EGR toggle (co-processor command with payload 00 or FF).",
+        "Test 14: runs tests 08, 09, 0B, 0C, 0F, 16, 17, 28, 29, 32 and 3D together on every step. Members that are refused in this image are skipped silently. It acknowledges with 14.",
+        "Test 15: toggles F8107 bit 02. The output is not identified.",
+        "Test 17: shift indicator lamp toggle (F8107 bit 80).",
+        "Test 1A: cruise vent toggle, with the servo supply on. Test 1B: cruise vacuum toggle, with the servo supply on.",
+        "Test 1C: ASD fuel system. Every step sends the on command (payload 60); restore sends the off command (payload 64). It is not a toggle.",
+        "Tests 28 and 29: refused in this image because of an option byte (ROM 2708 bit 40 clear).",
+        "Test 2C: cruise servo supply toggle (port C bit 20).",
+        "Test 2E: fan test with the second fan bit set, toggling the first. Test 2F: fan test with the second fan bit clear, toggling the first.",
+        "Test 32: toggles F8107 bit 08 (skip-shift).",
+        "Test 33: fuel-system relay toggle (co-processor payload 60 on, 64 off). Relay identity is strong, not verified. This test has no queue-room check.",
+        "Test 3B: one-shot, increases the requested idle-air position by one step when sent. Test 3C: one-shot, decreases it by one step. Neither does anything on later steps or on restore.",
+        "Test 3D: toggles F8502 bit 40. The output is not identified.",
+        "Test 40: holds both event-loss requests (F8106 bits 40 and 80) cleared on each step; restore sets both.",
+        "Test 44: reverse lockout toggle (F8502 bit 20).",
+        "Always refused with 00 in this image: 11, 12, 13, 18, 19, 20, 21, 22, 27, 2A, 2B, 2D, 34 to 3A, 3E, 3F, 42. With the six option-byte refusals that leaves 40 working tests.",
+        "Edge case: if the engine has turned and the last test was 14, a refused 13 does not finish cleanly and the request state stays armed until the inter-byte timeout (strong, not tested)."
+      ],
+      "effects": "drives outputs",
+      "security": "none",
+      "depends_on_coprocessor": true,
+      "confidence": "Flow verified by static trace; per-test output names are strong or open as marked; seconds are unresolved; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "1300",
+          "note": "stop the running actuator test (see the pitfall for coil, injector and purge tests)",
+          "observed": "echoed, reply 00"
+        },
+        {
+          "hex": "1309",
+          "note": "starts toggling the A/C clutch relay; engine must not have turned since key-on; also energises the ASD outputs",
+          "observed": "echoed, reply 09"
+        },
+        {
+          "hex": "1317",
+          "note": "starts toggling the shift indicator lamp; also energises the ASD outputs",
+          "observed": "echoed, reply 17"
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "name": "Read live value by index",
+      "handler": "00CFB6",
+      "args": [
+        {
+          "name": "index",
+          "bytes": 1,
+          "hint": "01..3F = RAM byte table, 40..63 = computed values; 00 and 64 and above return no value byte",
+          "default": "05"
+        }
+      ],
+      "reply": "Echo 14, echo of the index, then one value byte. Indexes 00, 43, 44, 50, 51, 58, 59, 5F, 60, 61, 62 and 64 and above send no value byte.",
+      "summary": "Returns one live byte selected by index, such as a sensor input or a fuel correction. A word value returns its high byte unless noted.",
+      "hints": [
+        "There are no preconditions. Each use sets the scan-tool-session flag F8109 bit 01, which cancels and blocks fault-code blinking.",
+        "Unused slots return a filler that alternates between F0 and 0F: indexes 03, 04, 09, 0D, 10, 14, 16-1A, 21, 22, 28, 2B, 30, 32-36, 3E.",
+        "01 battery temperature input (raw); 02 bank 1 upstream oxygen input; 05 coolant temperature (count minus 64 gives degrees C); 07 raw throttle; 08 learned closed-throttle reference; 0A sensor supply / charging supply value; 0B manifold pressure; 0C idle-air tracked position; 0E bank 1 long-term fuel correction; 0F pressure value used for decel and idle-air compensation.",
+        "11 engine speed high byte (32 rpm per count); 13 byte F899A, shifted with report-order entries; 15 final spark value; 1B intake air temperature; 1F byte F899C, shifted with report-order entries.",
+        "24 charging target; 27 stored timed state / external status bits; 29 F827C (the value stored by command 24); 2A F8359 (result of the command 21 measurement mode); 2C first byte of the converter result block; 2D intake air temperature substitute; 2E manifold pressure input; 2F bank 2 upstream oxygen input.",
+        "31 bank 2 long-term fuel correction; 38 value returned by companion command 25; 39 source byte for OBD Mode 01 PID 0A; 3B fuel system status bank 1; 3F rear bank 1 oxygen input.",
+        "Not named by the research (meaning open): 06 F8357, 12 F810D, 1C F8358, 1D F8573, 1E F899B, 20 F8986, 23 F8356, 25 F8438, 26 F8437, 37 F82DA, 3A F8046, 3C F8355, 3D F8354.",
+        "40 manifold pressure input; 41 vehicle speed; 45 snapshot additional byte F812F; 46 relative throttle x 1.668, limited to FF; 47 final spark value; 49 F803E raw; 4C F8040 raw; 4E fuel level voltage; 4F fuel level percent.",
+        "Oxygen class values return A0 if the input is at or above 1D, B1 if it is below 12, and FF otherwise: 42 for F8038 (bank 1 upstream), 48 for F803A (bank 2 upstream), 4A for F803C (rear bank 1), 4B for F803E, 4D for F8040. F803E and F8040 are assumed to be rear oxygen inputs, not named.",
+        "52 F881E; 53 F8429; 54 F8428; 55 F809A; 56 bank 1 short-term fuel correction; 57 fuel system status bank 2; 5A F8094; 5B F8410; 5C calculated load (recomputed on request); 5D low byte of word F8110; 5E low byte of the engine event counter; 63 F89A7. The unnamed ones are open."
+      ],
+      "effects": "read-only",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Table and flow verified by static trace; value names are from the manual (strong) and several are open; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "1405",
+          "note": "read coolant temperature (count minus 64 = degrees C)",
+          "observed": "echoed, reply D4"
+        },
+        {
+          "hex": "1411",
+          "note": "read engine speed high byte (32 rpm per count)",
+          "observed": "echoed, reply 00"
+        },
+        {
+          "hex": "144F",
+          "note": "read fuel level percent",
+          "observed": "echoed, reply 00"
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "name": "No operation (two arguments)",
+      "handler": "00CE9E",
+      "args": [
+        {
+          "name": "arg1",
+          "bytes": 1,
+          "hint": "ignored",
+          "default": "00"
+        },
+        {
+          "name": "arg2",
+          "bytes": 1,
+          "hint": "ignored",
+          "default": "00"
+        }
+      ],
+      "reply": "Only the three echoes (15 and the two argument bytes). No reply byte follows.",
+      "summary": "Empty table slot in this image. The two argument bytes are collected and echoed, then the request finishes without reading or writing anything.",
+      "hints": [
+        "On SBEC2 modules 15 is the flash memory read. It is not implemented in this firmware; use command 26 to read memory instead."
+      ],
+      "effects": "none",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "150000",
+          "note": "no effect on this image; returns the echoes only",
+          "observed": "echoed, no data"
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "name": "No operation (one argument)",
+      "handler": "00CE9E",
+      "args": [
+        {
+          "name": "arg1",
+          "bytes": 1,
+          "hint": "ignored",
+          "default": "00"
+        }
+      ],
+      "reply": "Only the two echoes (16 and the argument byte). No reply byte follows.",
+      "summary": "Empty table slot in this image. The argument byte is collected and echoed, then the request finishes without reading or writing anything.",
+      "hints": [
+        "The public convention lists 16 as an SBEC2-only flash constant read. It is not implemented in this firmware."
+      ],
+      "effects": "none",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "1600",
+          "note": "no effect on this image; returns the echoes only",
+          "observed": "echoed, no data"
+        }
+      ]
+    },
+    {
+      "id": "17",
+      "name": "Erase fault codes",
+      "handler": "00D00E",
+      "args": [],
+      "reply": "Echo 17, then E0 sent three times when the erase ran. If the engine has turned since key-on, only the echo is sent and nothing is erased.",
+      "summary": "Clears the stored fault list, fault history, snapshot, stored-fault bitmap and active fault flags.",
+      "hints": [
+        "Precondition: the engine must not have turned since key-on (F80CE bit 10 clear). There is no security check and no speed check.",
+        "A refusal is silent: you get the 17 echo and no E0. The firmware does not send the 00 that the public convention describes.",
+        "Cleared: fault history F8902..F8981, snapshot F888A..F8898, latched fault id F887A, report list F8868..F886F, F899A..F899C, stored-fault bitmap F8848..F8867, F8870..F8879, F887E, the warm-up count, F8886 and the active fault flags F8808..F880E.",
+        "Not cleared: the warm-up latch (F887C bit 80) and the start count F887B.",
+        "Command 23 with argument 01 runs the same erase and replies F0 instead."
+      ],
+      "effects": "clears stored data",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "17",
+          "note": "erases stored fault codes, history and snapshot; only works before the engine has turned",
+          "observed": "echoed, reply E0 E0 E0"
+        }
+      ]
+    },
+    {
+      "id": "18",
+      "name": "Timed ASD fuel-system request",
+      "handler": "00D146",
+      "args": [
+        {
+          "name": "duration",
+          "bytes": 1,
+          "hint": "high nibble must be the complement of the low nibble (F0, E1, D2 ... 0F); low nibble n sets the duration",
+          "default": "E1"
+        }
+      ],
+      "reply": "Echo 18, echo of the argument, then a stream of E1 bytes, one per fast-group pass, while the request is active. Refusals: 00 (engine has turned, bad argument or no queue room) or F1 (security not granted).",
+      "summary": "Turns on the ASD fuel system for a timed period and, while active, rewrites three stored marker records in the co-processor memory. It needs the security unlock.",
+      "hints": [
+        "Preconditions in order: engine must not have turned since key-on (else 00); security granted (else F1); argument nibbles must be complements (else 00); co-processor queue must have room (else 00).",
+        "Duration is n x 256 fast-group passes, plus or minus 128 (about n x 2.9 s if the fast group is 11.26 ms). With n = 0 it can end on the first pass.",
+        "While active the PCM checks every pass: engine turned gives 00 and stop; security lost gives F1 and stop; deadline reached sends the ASD off command and stops.",
+        "Sending 18 again while it is active stops it, without sending the off command.",
+        "Pitfall: once the startup-age counter has saturated at FFFF the deadline is never met and the request runs until stopped another way (strong, not tested).",
+        "While active it writes marker byte records (4A B5 patterns) to three co-processor memory locations, one write per pass when the writer is idle. The purpose of these records is not known.",
+        "It also sets the actuator-test flag, so the normal control routines listed under command 13 are suspended and the leftover actuator timer keeps counting (strong side effect).",
+        "The E1 stream is unsolicited traffic; do not send another request until it stops."
+      ],
+      "effects": "drives outputs",
+      "security": "Requires security granted (F8109 bit 10), from command 2B/2C or the keyed sequence after 1B. Reply F1 without it.",
+      "depends_on_coprocessor": true,
+      "confidence": "Flow verified by static trace; purpose is strong; the marker records are open; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "18E1",
+          "note": "turns on the ASD fuel system for about 256 fast passes and rewrites co-processor marker records; needs security and an engine that has not turned",
+          "observed": "echoed, reply F1"
+        }
+      ]
+    },
+    {
+      "id": "19",
+      "name": "Set idle speed target",
+      "handler": "00D280",
+      "args": [
+        {
+          "name": "speed",
+          "bytes": 1,
+          "hint": "target = value x 8 rpm (64 = 800 rpm, BF = 1528 rpm)",
+          "default": "64"
+        }
+      ],
+      "reply": "Echo 19 and the echo of the argument only, whether accepted or refused.",
+      "summary": "Sets the idle speed target to the argument times 8 rpm and holds it for a short time. Resend the command to keep the hold alive.",
+      "hints": [
+        "Precondition: throttle at idle (F80D6 bit 80 clear). A second gate on an option byte always passes in this image.",
+        "There is no engine-running, security or speed check.",
+        "A refusal looks the same as success: only the echoes are sent.",
+        "The hold lasts 64 fast-group passes (about 0.7 s if the fast group is 11.26 ms), then normal idle targeting resumes.",
+        "The target is not range-limited. The firmware scale is 8 rpm per count, not the 7.85 of the public convention.",
+        "The engine only moves to the target if the normal running idle-air correction is active."
+      ],
+      "effects": "writes RAM",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "1964",
+          "note": "sets the idle speed target to 800 rpm for about 64 fast passes",
+          "observed": "echoed, no data"
+        }
+      ]
+    },
+    {
+      "id": "1A",
+      "name": "Read status byte (switch test)",
+      "handler": "00D2D6",
+      "args": [
+        {
+          "name": "selector",
+          "bytes": 1,
+          "hint": "01 = switch inputs, 02 = output snapshot, 03 = shadow of F8107, 04 = shadow of F8108, 05 = always 00",
+          "default": "01"
+        }
+      ],
+      "reply": "Echo 1A, echo of the selector, then one status byte. Selector 00 or 06 and above sends no value byte.",
+      "summary": "Returns one of four status bytes showing switch inputs and output request states.",
+      "hints": [
+        "There are no preconditions.",
+        "Selector 01: switch and input bits (F810B).",
+        "Selector 02: output snapshot built by the PCM: bits C8 from F8106, bits 30 from F8502, bit 02 if F8502 bit 08 is set, bit 04 if F8502 bit 40 is set, bit 01 if the cruise servo supply (port C bit 20) is off.",
+        "Selector 03: output request byte F8107 as last queued. Selector 04: output request byte F8108 as last queued.",
+        "Selector 05 returns 00."
+      ],
+      "effects": "read-only",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "1A01",
+          "note": "read the switch input byte",
+          "observed": "echoed, reply 27"
+        },
+        {
+          "hex": "1A02",
+          "note": "read the output snapshot byte",
+          "observed": "echoed, reply 00"
+        }
+      ]
+    },
+    {
+      "id": "1B",
+      "name": "Enter keyed sequence or memory monitor",
+      "handler": "00D310",
+      "args": [],
+      "reply": "Echo 1B only. What follows depends on the next byte sent.",
+      "summary": "Arms a special byte mode. The next byte selects either the keyed override sequence (14) or the memory monitor (F8).",
+      "hints": [
+        "There are no preconditions. After 1B the inter-byte timeout is disarmed until the next byte arrives.",
+        "Keyed sequence: send 14 (not echoed). The PCM switches to 976.6 baud. Then send F3 F5 F7 F8; only the F8 is echoed. Then send X X, a a, b b, c c (each value twice, none echoed).",
+        "On completion the PCM writes X into F8109 as a whole byte and returns to 7812.5 baud. There is no seed or key. Any mismatch clears F8109 bits E1 and returns to 7812.5 baud.",
+        "F8109 bits written by X: 01 scan tool session present; 02 spark override, spark advance = a; 04 fuel pulse-width override, value = (b:c) shifted right 3; 08 with 04, coarse form using b only; 10 security granted; 20 actuator-test state toggle; 40 command 21 measurement mode; 80 base or fixed timing.",
+        "About 158 ms after the sequence completes, the session reset clears bits 80, 40, 20 and 01 of the new value. Bits 10, 08, 04 and 02 stay set until a reset or another keyed sequence. Whether key-off clears them is not settled.",
+        "The spark and fuel override gates are strong; their units are open.",
+        "Memory monitor: after 1B send F8, F9, FB (each echoed), then an operation byte, then two parameter bytes and two more.",
+        "Monitor operation F8, block read: send count low, count high, address low, address high. Then each E0 returns the next byte. FD is echoed; when the count reaches 0 the mode ends.",
+        "Monitor operations F9 and FB, single byte: send address low, address high (address must be 0300 or above). Any byte returns the current value. FE must follow, then a data byte is written and the value read back is returned.",
+        "In this image the monitor bank is always 0, so it reads ROM 0000..FFFF only and its write lands in flash and has no effect.",
+        "The monitor replies 17 instead of data when FB targets E000 or above while engine speed is 128 rpm or more. Any other mismatch aborts silently, and the inter-byte timeout applies.",
+        "Any byte other than 14 after 1B is handled by the monitor path."
+      ],
+      "effects": "changes mode",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Entry and sequences verified by static trace; the monitor looks inherited from another part (open); override units open; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "1B",
+          "note": "arms the byte mode; follow with 14 for the keyed sequence or F8 for the memory monitor, or stay silent and let it be replaced by the next command",
+          "observed": "echoed, no data"
+        }
+      ]
+    },
+    {
+      "id": "1C",
+      "name": "No operation (not implemented)",
+      "handler": "00CE9E",
+      "args": [
+        {
+          "name": "arg1",
+          "bytes": 1,
+          "hint": "ignored",
+          "default": "00"
+        },
+        {
+          "name": "arg2",
+          "bytes": 1,
+          "hint": "ignored",
+          "default": "00"
+        }
+      ],
+      "reply": "Only the three echoes. No reply byte follows.",
+      "summary": "Empty table slot in this image. Two argument bytes are collected and echoed, then the request finishes with no action.",
+      "hints": [
+        "The public convention names 1C as the SBEC2 EEPROM write. It is absent from this firmware; EEPROM writes here go through commands 23, 24 and 27.",
+        "No example is given because on a different module this byte could be a real write."
+      ],
+      "effects": "none",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; not tested on hardware.",
+      "examples": []
+    },
+    {
+      "id": "1D",
+      "name": "No operation (not implemented)",
+      "handler": "00CE9E",
+      "args": [
+        {
+          "name": "arg1",
+          "bytes": 1,
+          "hint": "ignored",
+          "default": "00"
+        },
+        {
+          "name": "arg2",
+          "bytes": 1,
+          "hint": "ignored",
+          "default": "00"
+        }
+      ],
+      "reply": "Only the three echoes. No reply byte follows.",
+      "summary": "Empty table slot in this image. Two argument bytes are collected and echoed, then the request finishes with no action.",
+      "hints": [
+        "The public convention names 1D as an SBEC2 RAM write. It is absent from this firmware; RAM writes here use command 29.",
+        "No example is given because on a different module this byte could be a real write."
+      ],
+      "effects": "none",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; not tested on hardware.",
+      "examples": []
+    },
+    {
+      "id": "1E",
+      "name": "No operation (not implemented)",
+      "handler": "00CE9E",
+      "args": [
+        {
+          "name": "arg1",
+          "bytes": 1,
+          "hint": "ignored",
+          "default": "00"
+        },
+        {
+          "name": "arg2",
+          "bytes": 1,
+          "hint": "ignored",
+          "default": "00"
+        }
+      ],
+      "reply": "Only the three echoes. No reply byte follows.",
+      "summary": "Empty table slot in this image. Two argument bytes are collected and echoed, then the request finishes with no action.",
+      "hints": [
+        "The public convention names 1E as an SBEC2 RAM write. It is absent from this firmware; RAM writes here use command 29.",
+        "No example is given because on a different module this byte could be a real write."
+      ],
+      "effects": "none",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; not tested on hardware.",
+      "examples": []
+    },
+    {
+      "id": "1F",
+      "name": "No operation (not implemented)",
+      "handler": "00CE9E",
+      "args": [
+        {
+          "name": "arg1",
+          "bytes": 1,
+          "hint": "ignored",
+          "default": "00"
+        },
+        {
+          "name": "arg2",
+          "bytes": 1,
+          "hint": "ignored",
+          "default": "00"
+        }
+      ],
+      "reply": "Only the three echoes. No reply byte follows.",
+      "summary": "Empty table slot in this image. Two argument bytes are collected and echoed, then the request finishes with no action.",
+      "hints": [
+        "The public convention names 1F as an SBEC2 RAM worker upload and run. It is absent from this firmware.",
+        "No example is given because on a different module this byte could be a real upload."
+      ],
+      "effects": "none",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; not tested on hardware.",
+      "examples": []
+    },
+    {
+      "id": "20",
+      "name": "No operation (not implemented)",
+      "handler": "00CE9E",
+      "args": [
+        {
+          "name": "arg1",
+          "bytes": 1,
+          "hint": "ignored",
+          "default": "00"
+        },
+        {
+          "name": "arg2",
+          "bytes": 1,
+          "hint": "ignored",
+          "default": "00"
+        }
+      ],
+      "reply": "Only the three echoes. No reply byte follows.",
+      "summary": "Empty table slot in this image. Two argument bytes are collected and echoed, then the request finishes with no action.",
+      "hints": [
+        "The public convention names 20 as an SBEC2 RAM worker upload and run. It is absent from this firmware.",
+        "No example is given because on a different module this byte could be a real upload."
+      ],
+      "effects": "none",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; not tested on hardware.",
+      "examples": []
+    },
+    {
+      "id": "21",
+      "name": "Basic timing and measurement mode",
+      "handler": "00D324",
+      "args": [
+        {
+          "name": "mode",
+          "bytes": 1,
+          "hint": "00 = cancel both modes, 01 = basic timing, 10 = measurement mode; other values cancel both modes",
+          "default": "00"
+        }
+      ],
+      "reply": "Echo 21, echo of the argument, then one byte: 00 after cancel, 01 basic timing set, 10 measurement mode set, 02 refused because the throttle is off idle, 03 refused by the transmission gate. An unused argument value is returned unchanged. No reply byte is sent if the measurement mode is already active.",
+      "summary": "Sets or cancels basic timing mode (fixed spark and an 800 rpm idle target) or a measurement mode that holds idle at 1000 rpm and computes a sync angle readable with command 14 index 2A.",
+      "hints": [
+        "Argument 00 always works and clears both modes.",
+        "For any other argument the throttle must be at idle (else 02 and both modes are cleared). The 03 gate always passes in this image (manual-transmission option byte).",
+        "Basic timing (01): spark is replaced by a fixed value of 28 half-degree counts (14 degrees if there is no offset) and the idle target becomes 800 rpm. The meaning is strong, not verified.",
+        "Basic timing stays set until 21 00, an unused argument, the throttle going off idle, or an unidentified switch-input condition. No timer was found.",
+        "Measurement mode (10): the idle target is held at 1000 rpm and the PCM keeps computing a signed angle of roughly plus or minus 22 into F8359. It is probably a cam-to-crank sync angle, but the input it measures is not identified (open).",
+        "While measurement mode is active and a command is in progress, the PCM can send an unsolicited 02 (throttle off idle) or 03 and drop the mode.",
+        "Pitfall: sending 21 with a non-zero argument while measurement mode is already active gives no reply and leaves the request armed, so following bytes are echoed and re-dispatched to 21 until the inter-byte timeout (about 158 ms). Cancel with 21 00 first (strong, not tested).",
+        "The full session reset clears both mode bits along with the other session bits of F8109."
+      ],
+      "effects": "changes mode",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Checks and replies verified by static trace; basic-timing meaning strong; measurement-mode meaning open; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "2100",
+          "note": "cancels basic timing and measurement mode",
+          "observed": "echoed, reply 00"
+        },
+        {
+          "hex": "2101",
+          "note": "sets basic timing mode: fixed spark and 800 rpm idle target until cancelled",
+          "observed": "echoed, reply 01"
+        }
+      ]
+    },
+    {
+      "id": "22",
+      "name": "Read engine parameter word",
+      "handler": "00D3E4",
+      "args": [
+        {
+          "name": "selector",
+          "bytes": 1,
+          "hint": "01 = engine speed, 02 = fuel value A, 03 = requested idle-air position, 04 = fuel value B",
+          "default": "01"
+        }
+      ],
+      "reply": "Echo 22, echo of the selector, then two bytes: the 16-bit value, high byte first. Any other selector, including 00, sends no reply bytes.",
+      "summary": "Returns one 16-bit engine value selected by the argument.",
+      "hints": [
+        "There are no preconditions.",
+        "Selector 01: engine speed, 8 counts per rpm (divide the word by 8).",
+        "Selector 02: fuel value group A (injector pulse width 1). Selector 04: fuel value group B (injector pulse width 2). The units of both are not established.",
+        "Selector 03: requested idle-air position in motor steps. The public convention calls this target idle speed, but this firmware sends the idle-air position."
+      ],
+      "effects": "read-only",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; names are strong, from the manual; fuel units open; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "2201",
+          "note": "read engine speed (word / 8 = rpm)",
+          "observed": "echoed, reply 00 00"
+        },
+        {
+          "hex": "2203",
+          "note": "read requested idle-air position",
+          "observed": "echoed, reply 00 00"
+        }
+      ]
+    },
+    {
+      "id": "23",
+      "name": "Reset memory",
+      "handler": "00D424",
+      "args": [
+        {
+          "name": "sub-function",
+          "bytes": 1,
+          "hint": "01 faults, 02 fuel learning, 03 idle-air position, 04 throttle reference, 05 and 0B EEPROM byte, 07 and 08 statistics, 12 forced reset with loss of all learning",
+          "default": "00"
+        }
+      ],
+      "reply": "Echo 23, echo of the sub-function, then one byte: F0 done, 00 engine has turned since key-on, 01 sub-function not supported (13 and above), 02 EEPROM writer busy, 03 security needed. Sub-functions that do nothing send no reply byte.",
+      "summary": "Resets one area of learned or stored memory selected by the sub-function. Sub-function 12 forces a PCM reset that wipes all retained learning.",
+      "hints": [
+        "Precondition for every sub-function: the engine must not have turned since key-on, otherwise the reply is 00.",
+        "The reply is sent once, with no repetition.",
+        "00, 06, 09, 0A and 0C to 11: no action and no reply byte.",
+        "01: full fault and monitor clear, the same erase as command 17. Reply F0.",
+        "02: clears the long-term fuel corrections for both banks and the learned fuel cells F889A..F88D0. Reply F0.",
+        "03: resets the tracked idle-air position to its cold-start seed (DF). Reply F0.",
+        "04: resets the learned closed-throttle reference to its startup seed (38). Reply F0.",
+        "05: needs security (else 03) and an idle EEPROM writer (else 02). Queues a write of 00 to logical EEPROM offset 0C. F0 means queued, not proven written. What this byte holds is not known.",
+        "07: clears the fuel-cut and limit request byte, the engine start counter F899D and F899E. Reply F0.",
+        "08: clears F899F, the saved run-age byte from the last engine stop. Reply F0.",
+        "0B: if the EEPROM writer is busy the reply is 02. Otherwise queues a write of 00 to logical EEPROM offset 0F, with no security check. Reply F0. What this byte holds is not known.",
+        "12: replies F0, then forces a PCM reset after deliberately breaking the retained-memory checksum. On restart all retained learning F8800..F8A04 is cleared and reseeded. The link drops while the PCM restarts.",
+        "The bytes written by 05 and 0B can be read back with command 28 at offsets 000C and 000F."
+      ],
+      "effects": "clears stored data",
+      "security": "Only sub-function 05 needs security granted (F8109 bit 10); it replies 03 without it. All other sub-functions need none.",
+      "depends_on_coprocessor": true,
+      "confidence": "Verified by static trace; the reset chain of sub-function 12 is strong; the meaning of EEPROM offsets 0C and 0F and of sub-functions 07 and 08 is open; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "2300",
+          "note": "no action and no reply byte; safe probe",
+          "observed": "echoed, no data"
+        },
+        {
+          "hex": "2302",
+          "note": "clears long-term fuel corrections and learned fuel cells; engine must not have turned",
+          "observed": "echoed, reply F0"
+        },
+        {
+          "hex": "2304",
+          "note": "resets the learned closed-throttle reference to its default",
+          "observed": "echoed, reply F0"
+        }
+      ]
+    },
+    {
+      "id": "24",
+      "name": "Store EEPROM value pair at logical 90/91",
+      "handler": "00D570",
+      "args": [
+        {
+          "name": "value",
+          "bytes": 1,
+          "hint": "must be 64..BC",
+          "default": "80"
+        }
+      ],
+      "reply": "Echo 24, echo of the value, then one byte: 00 accepted and write queued, 01 a qualified fault is recorded, 02 engine not running, 03 vehicle is moving, 04 value out of range or EEPROM writer busy.",
+      "summary": "Stores the value and its complement in the co-processor EEPROM at logical offsets 90 and 91. It is some per-vehicle fuel or adaptive setting whose meaning is not known.",
+      "hints": [
+        "Checks in order: value in 64..BC (else 04); no qualified fault recorded (else 01); engine running (else 02); vehicle speed zero (else 03); EEPROM writer idle (else 04).",
+        "Note that 00 means success here, unlike most commands.",
+        "The reply is sent once, even for a refusal.",
+        "The stored pair is read back into RAM at reset, or on demand with command 25 item 10 state 02. It is visible through command 14 index 29.",
+        "In this image an option byte disables the fuel code that would use the value, so storing it has no effect on fuelling here.",
+        "A 00 reply means the write was queued, not that it finished."
+      ],
+      "effects": "writes EEPROM",
+      "security": "none",
+      "depends_on_coprocessor": true,
+      "confidence": "Handler verified by static trace; meaning of the stored value is open; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "2480",
+          "note": "writes 80 and 7F to EEPROM logical offsets 90 and 91; accepted only with the engine running, the car stopped and no fault recorded",
+          "observed": "echoed, reply 02"
+        }
+      ]
+    },
+    {
+      "id": "25",
+      "name": "Output override",
+      "handler": "00D5E8",
+      "args": [
+        {
+          "name": "item",
+          "bytes": 1,
+          "hint": "00 = end all overrides; 01, 04..1A = override item (see hints); 02, 03 and 1B and above are refused",
+          "default": "00"
+        },
+        {
+          "name": "state",
+          "bytes": 1,
+          "hint": "00 = reset, 01 = enable, 02 = disable; 03 and above refused except for item 00",
+          "default": "00"
+        }
+      ],
+      "reply": "Echo 25, echoes of item and state, then one byte: the state byte on success, or its complement on refusal (for example FE for a refused state 01).",
+      "summary": "Forces a single output or control function on or off for a short time. Most overrides time out and must be repeated to stay active.",
+      "hints": [
+        "Starting an override loads a countdown in slow-group visits (given per item below). At zero everything is restored. Repeat the command to keep an override alive. sci-session.md infers 1.000 s per visit; sci-commands-1C-25.md leaves the tick open and mentions 100 ms as a possibility.",
+        "Active overrides cancel themselves when their gate condition stops being true.",
+        "Queue room means the co-processor command queue count is below 9 (below 8 for item 19).",
+        "Item 00, any state: ends all overrides, restores outputs, re-sends the normal purge value and turns the generator test off. The reply is the state byte whatever its value.",
+        "Item 01, EVAP purge solenoid: state 00 back to normal purge, 01 purge full on (FF), 02 purge off (00). Needs queue room. Timer 1E (30 visits). Meaning strong.",
+        "Item 04, EGR request override: 00 off, 01 override with request set, 02 override with request clear. Timer 0A (10 visits). Also freezes closed-loop trims and spark. Meaning strong.",
+        "Items 05 to 0E, fuel injector disable, one item per injector channel (10 channels): state 02 disables that injector, 01 re-enables it, 00 ends the whole group. Timer 0A (10 visits) on state 02. The channel-to-cylinder order is not known.",
+        "Injector disable (state 02) needs: coolant byte between 92 and AE, vehicle speed below 02, no active fault bits in F880C, closed throttle, engine running. It also freezes fuel trims, spark and idle air.",
+        "Item 0F, minimum-airflow mode: state 01 zeroes the idle-air request and fixes spark; states 00 and 02 end it. Needs closed throttle. Timer 01A4 (420 visits). Ending it also stops the timer for other active overrides (open side effect). Meaning strong.",
+        "Item 10: only state 02 is accepted; it reloads the command 24 value from EEPROM offsets 90 and 91 into RAM. States 00 and 01 are refused. Needs queue room.",
+        "Item 11, generator field test: 00 off, 01 field on, 02 field off. Needs engine speed from 500 to under 2000 rpm and the supply value below FE, plus queue room. Timer 03 (3 visits). Meaning strong.",
+        "Item 12: state 02 suppresses the OBD request service; 00 and 01 restore it. No timer. Meaning open.",
+        "Item 13: drives output bit F8502 bit 40 (the same bit as actuator test 3D): 01 clears it, 02 sets it, 00 restores. Timer 01A4 (420 visits). The physical device is not identified.",
+        "Item 14, automatic-transmission governor pressure duty: carried over from the shared program and not Viper hardware. Needs engine running and low output speed. Timer 05.",
+        "Item 15: drives the shift indicator lamp on the Viper (with a torque-converter-clutch bit from the shared program): 01 clears the lamp bit, 02 sets it, 00 restores. Needs engine running and low output speed. Timer 02. Meaning strong.",
+        "Item 16: drives the reverse-lockout solenoid on the Viper (with an overdrive bit from the shared program): 01 clears the bit, 02 sets it, 00 restores. Needs engine running and low output speed. Timer 05. Meaning strong.",
+        "Item 17: 01 sets and 00 or 02 clears a flag (F8417 bit 08) with no known reader. Timer 0258 (600 visits) on state 01. Meaning open.",
+        "Item 18: state 01 starts an EGR-related sequence if the engine is running and a fault flag is clear; 00 and 02 stop it. No timer. Purpose open.",
+        "Item 19: state 01 forces a monitor run (leak/purge family). Refused if already active, the engine is off or the car is moving. If the queue is nearly full there is NO reply byte at all. States 00 and 02 clear it. No timer load. Meaning open.",
+        "Item 1A: state 02 sets a flag (F8657 bit 04) if vehicle speed is 02 or less, otherwise it is refused; 00 and 01 clear it. No timer. Meaning open.",
+        "A success reply for an item that queues an EEPROM request means the request was accepted, not that it finished."
+      ],
+      "effects": "drives outputs",
+      "security": "none",
+      "depends_on_coprocessor": true,
+      "confidence": "Replies, gates and timers verified by static trace; item meanings strong or open as marked; timer seconds unresolved; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "250000",
+          "note": "ends all overrides and restores normal outputs",
+          "observed": "echoed, reply 00"
+        },
+        {
+          "hex": "251002",
+          "note": "reloads the command 24 value from EEPROM into RAM; no output is driven",
+          "observed": "echoed, reply 02"
+        },
+        {
+          "hex": "250102",
+          "note": "forces the EVAP purge solenoid off for about 30 slow-group visits",
+          "observed": "echoed, reply 02"
+        }
+      ]
+    },
+    {
+      "id": "26",
+      "name": "Read main-CPU memory byte",
+      "handler": "00DDC0",
+      "args": [
+        {
+          "name": "bank",
+          "bytes": 1,
+          "hint": "00..03 = flash banks (000000..03FFFF), 0F = RAM (F8000..F8A04 only)",
+          "default": "00"
+        },
+        {
+          "name": "address high",
+          "bytes": 1,
+          "hint": "high byte of the 16-bit address within the bank",
+          "default": "00"
+        },
+        {
+          "name": "address low",
+          "bytes": 1,
+          "hint": "low byte of the 16-bit address within the bank",
+          "default": "00"
+        }
+      ],
+      "reply": "Echo 26 and the three argument echoes, then one byte: the memory content. A rejected bank or a RAM address outside the window sends no reply byte.",
+      "summary": "Reads one byte of main-CPU flash or RAM. The whole 256 KB flash is readable without security.",
+      "hints": [
+        "There are no preconditions: no security, no engine-state check and no queue check. It works key-on engine-off and with the engine running.",
+        "Banks 00 to 03 accept any address 0000..FFFF. Bank 0F accepts only F8000..F8A04. Banks 04 to 0E and 10 to FF are rejected.",
+        "A rejection is silent. Treat a missing reply byte as a failed read and record it as unread, not as FF.",
+        "RAM above F8A04 (including the stack) and all register blocks are unreachable.",
+        "A long RAM scan is not a simultaneous snapshot; repeat reads of stable memory and compare.",
+        "Hardware response, framing and pacing have not been tested on this module."
+      ],
+      "effects": "read-only",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "2600C000",
+          "note": "read flash byte at 00C000",
+          "observed": "echoed, reply 10"
+        },
+        {
+          "hex": "26002738",
+          "note": "read first byte of the calibration part number at 002738 (expected 04)",
+          "observed": "echoed, reply 04"
+        },
+        {
+          "hex": "260F805A",
+          "note": "read RAM byte F805A (engine speed high byte)",
+          "observed": "echoed, reply 00"
+        }
+      ]
+    },
+    {
+      "id": "27",
+      "name": "Write logical EEPROM byte",
+      "handler": "00DDF2",
+      "args": [
+        {
+          "name": "offset high",
+          "bytes": 1,
+          "hint": "high byte of the logical offset; use 00 or 01 only",
+          "default": "00"
+        },
+        {
+          "name": "offset low",
+          "bytes": 1,
+          "hint": "low byte of the logical offset (valid offsets 0000..01FF)",
+          "default": "00"
+        },
+        {
+          "name": "data",
+          "bytes": 1,
+          "hint": "byte to write",
+          "default": "00"
+        }
+      ],
+      "reply": "Echo 27 and the three argument echoes, then one byte. Immediate: F0 offset out of range, F1 protected entry without security, 00 writer busy. Deferred, after the write finishes: E2 write completed, or 00 write failed.",
+      "summary": "Writes one byte to the co-processor EEPROM through a logical offset table. Most entries can be written with no security.",
+      "hints": [
+        "Only send offsets 0000..01FF. The range check is flawed: offsets 8000..81FF alias 0000..01FF, and offsets 7B66..7FFF and FB66..FFFF pass the check and can address co-processor memory outside the EEPROM window, mostly with no security. Whether the co-processor accepts those addresses is not known.",
+        "There is no engine-state check. The write itself waits for room in the co-processor queue.",
+        "No reply byte is sent between acceptance and the final E2 or 00. Wait for it before sending anything else.",
+        "Protected offsets (need security, else F1): 008-009, 00C, 050-061, 073-08F, 094-098, 0BA-0BB, 0CC-0DD, 0DF-0E0, 1D6-1D7, 1E0-1EA, 1EF-1FF. That is 107 of the 512 entries.",
+        "Unprotected offsets (no security): 000-007, 00A-00B, 00D-04F, 062-072, 090-093, 099-0B9, 0BC-0CB, 0DE, 0E1-1D5, 1D8-1DF, 1EB-1EE. That is 405 entries.",
+        "Logical offsets can alias the same physical byte (512 offsets map to 260 distinct addresses), so one write may change what several offsets read.",
+        "Offset 1EF (protected) selects which identification list command 2A uses after the next reset.",
+        "No example is given: there is no write that is known to be safe."
+      ],
+      "effects": "writes EEPROM",
+      "security": "Protected entries (107 of 512) need security granted (F8109 bit 10) and reply F1 without it. The other 405 entries need none.",
+      "depends_on_coprocessor": true,
+      "confidence": "Handler verified by static trace; co-processor protocol roles strong; the out-of-range behaviour is strong and its effect on the co-processor is open; not tested on hardware.",
+      "examples": []
+    },
+    {
+      "id": "28",
+      "name": "Read logical EEPROM byte",
+      "handler": "00DE6A",
+      "args": [
+        {
+          "name": "offset high",
+          "bytes": 1,
+          "hint": "00 or 01",
+          "default": "00"
+        },
+        {
+          "name": "offset low",
+          "bytes": 1,
+          "hint": "low byte of the logical offset (valid offsets 0000..01FF)",
+          "default": "00"
+        }
+      ],
+      "reply": "Echo 28 and the two argument echoes, then one byte, sent later when the co-processor read completes: the EEPROM content. An offset of 0200 or above, or a full queue, sends no reply byte.",
+      "summary": "Reads one byte of the co-processor EEPROM through the logical offset table. Protected entries are readable too.",
+      "hints": [
+        "Preconditions: the co-processor queue must have room (count below 9). There is no security or engine-state check.",
+        "The data byte arrives after a delay. If nothing arrives, time out and retry; record a failed read as unread, not as FF.",
+        "Wait for the data byte before sending another request.",
+        "The 512 logical offsets map to 260 distinct physical addresses in 0D80..0FFF, so a 512-byte export is a logical view with aliases, not 512 unique bytes.",
+        "Use this image's own offset table to interpret the data; published converters for other vehicles do not match every entry.",
+        "The step that signals read completion was not traced."
+      ],
+      "effects": "read-only",
+      "security": "none",
+      "depends_on_coprocessor": true,
+      "confidence": "Handler verified by static trace; completion signalling open; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "280000",
+          "note": "read logical EEPROM offset 0000",
+          "observed": "echoed, reply 00"
+        },
+        {
+          "hex": "280090",
+          "note": "read logical EEPROM offset 0090 (the value stored by command 24)",
+          "observed": "echoed, reply 6E"
+        },
+        {
+          "hex": "2801EF",
+          "note": "read logical EEPROM offset 01EF (identification list selector)",
+          "observed": "echoed, reply 5E"
+        }
+      ]
+    },
+    {
+      "id": "29",
+      "name": "Write RAM byte",
+      "handler": "00DEEA",
+      "args": [
+        {
+          "name": "offset high",
+          "bytes": 1,
+          "hint": "high byte of the offset from F8000 (00..0A)",
+          "default": "00"
+        },
+        {
+          "name": "offset low",
+          "bytes": 1,
+          "hint": "low byte of the offset from F8000 (offset range 0000..0A04)",
+          "default": "00"
+        },
+        {
+          "name": "data",
+          "bytes": 1,
+          "hint": "byte to write",
+          "default": "00"
+        }
+      ],
+      "reply": "Echo 29 and the three argument echoes, then one byte: E5 written, F1 security not granted, F0 offset out of range.",
+      "summary": "Writes one byte of RAM at F8000 plus the offset. It needs the security unlock.",
+      "hints": [
+        "The address is an offset relative to F8000, not a bank and address as in command 26.",
+        "The writable window is F8000..F8A04, the same window command 26 reads with bank 0F. The stack and registers are excluded.",
+        "There is no engine-state check: once unlocked it can change live control RAM with the engine running, including the security byte F8109 itself.",
+        "No example is given: there is no write that is known to be safe."
+      ],
+      "effects": "writes RAM",
+      "security": "Requires security granted (F8109 bit 10), from command 2B/2C or the keyed sequence after 1B. Reply F1 without it.",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; not tested on hardware.",
+      "examples": []
+    },
+    {
+      "id": "2A",
+      "name": "Read identification byte",
+      "handler": "00DF22",
+      "args": [
+        {
+          "name": "index",
+          "bytes": 1,
+          "hint": "01..1F = identification byte; 00 and 20..80 give no reply; 81..FF return unrelated ROM bytes",
+          "default": "01"
+        }
+      ],
+      "reply": "Echo 2A, echo of the index, then one byte for indexes 01..1F. Index 00 and indexes 20..80 send no reply byte.",
+      "summary": "Returns one byte of the module and calibration identification, selected by index.",
+      "hints": [
+        "There are no preconditions.",
+        "Indexes 01 to 04: calibration part number in BCD, 04 84 87 03 (04848703).",
+        "Indexes 05 and 19: A0, the seventh byte of the identifier (meaning open).",
+        "Indexes 06 to 16: calibration-area bytes 05 03 01 04 01 07 0C 03 02 06 0F 0E 00 7C 0A 20 02 (meaning open).",
+        "Indexes 17 and 18: 41 46, ASCII AF, the revision.",
+        "Indexes 1A to 1F: 52 43 45 41 44 00, ASCII RCEAD followed by 00 (meaning open).",
+        "Quirk: indexes 81 to FF are also accepted because of a signed range test, and return arbitrary ROM bytes (mostly FF). Do not treat them as identification.",
+        "Which of two identification lists is used depends on a byte read from EEPROM offset 1EF at reset; both lists return identical values in this image."
+      ],
+      "effects": "read-only",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Table bytes verified by static trace; meanings of several fields open; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "2A01",
+          "note": "read identification byte 1 (first part-number byte, expected 04)",
+          "observed": "echoed, reply 04"
+        },
+        {
+          "hex": "2A17",
+          "note": "read identification byte 17 (first revision letter, expected 41 = A)",
+          "observed": "echoed, reply 41"
+        }
+      ]
+    },
+    {
+      "id": "2B",
+      "name": "Request security seed",
+      "handler": "00DF5C",
+      "args": [],
+      "reply": "Echo 2B, then three bytes: seed high, seed low, and a checksum equal to the low byte of seed high + seed low + 2B.",
+      "summary": "Returns the security seed and arms the expected key for command 2C. The seed is the PCM's startup-age counter, so it changes over time.",
+      "hints": [
+        "There are no preconditions.",
+        "The expected key is (seed x 4 + 9018), low 16 bits. The constant 9018 is the word at ROM 085D.",
+        "Send 2C soon after 2B. The stored expected key shares RAM with the memory monitor, so a 2C without a fresh 2B compares against whatever is there (strong).",
+        "The seed counter saturates at FFFF.",
+        "Requesting a seed changes nothing except the stored expected key."
+      ],
+      "effects": "read-only",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; the key formula is strong (rests on one addressing assumption); not tested on hardware.",
+      "examples": [
+        {
+          "hex": "2B",
+          "note": "request the security seed; does not unlock anything by itself",
+          "observed": "echoed, reply 00 00 2B"
+        }
+      ]
+    },
+    {
+      "id": "2C",
+      "name": "Send security key (unlock)",
+      "handler": "00DF90",
+      "args": [
+        {
+          "name": "key high",
+          "bytes": 1,
+          "hint": "high byte of (seed x 4 + 9018)",
+          "default": "00"
+        },
+        {
+          "name": "key low",
+          "bytes": 1,
+          "hint": "low byte of (seed x 4 + 9018)",
+          "default": "00"
+        },
+        {
+          "name": "check",
+          "bytes": 1,
+          "hint": "low byte of 2C + key high + key low",
+          "default": "2C"
+        }
+      ],
+      "reply": "Echo 2C and the three argument echoes, then one byte: 00 unlocked, 01 wrong key (retry delay armed), 02 bad check byte or retry delay still running, 03 locked out after too many failures.",
+      "summary": "Checks the key against the one armed by command 2B and, if correct, grants security for commands 18, 23 sub-function 05, 27 (protected entries) and 29.",
+      "hints": [
+        "Sequence: send 2B, compute key = (seed x 4 + 9018) low 16 bits, then send 2C keyHi keyLo check.",
+        "Note that 00 means success here.",
+        "After a wrong key a retry delay runs (4 counts of the high byte of the engine run/stop timer); a correct key sent during the delay gets 02. The real-time length of the delay is not established.",
+        "After 3 failures a correct key gets 03 (lockout).",
+        "The inter-byte timeout reset (an incomplete request left for about 158 ms) clears the failure count and the delay (strong, not tested).",
+        "Once granted, the unlock stays until the PCM resets or a keyed sequence rewrites the security byte. The session timeout does not remove it.",
+        "The example key is only correct when 2B returned seed 0100."
+      ],
+      "effects": "changes mode",
+      "security": "This is the unlock itself. It needs a seed from 2B first; no prior permission is required.",
+      "depends_on_coprocessor": false,
+      "confidence": "Logic verified by static trace; unlock lifetime and lockout weaknesses strong; delay length open; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "2C9418D8",
+          "note": "key for seed 0100 (0100 x 4 + 9018 = 9418); grants security until reset if the seed matches",
+          "observed": "echoed, reply 01"
+        }
+      ]
+    },
+    {
+      "id": "2D",
+      "name": "Read monitor calibration descriptor",
+      "handler": "00DFF8",
+      "args": [
+        {
+          "name": "group",
+          "bytes": 1,
+          "hint": "01..09; other values give no reply",
+          "default": "01"
+        },
+        {
+          "name": "item",
+          "bytes": 1,
+          "hint": "01..1F within the group",
+          "default": "01"
+        }
+      ],
+      "reply": "Echo 2D and the two argument echoes, then two bytes: a type code, then the calibration byte it points to. Unused records reply 00 00. A group outside 01..09 sends no reply bytes.",
+      "summary": "Returns a diagnostic-monitor calibration limit with a type code, selected by group and item.",
+      "hints": [
+        "There are no preconditions.",
+        "Use items 01..1F only. Items 00 and 20..FF are not range-checked and read neighbouring tables or unrelated ROM.",
+        "Type codes seen: 01, 02, 05, 06, 09, 0B, 0E, 17, 19. The meaning of the code byte and of each group is not known.",
+        "The values are thresholds used by the monitors (for example group 5 item 12 is a fuel-trim limit and group 3 items 10, 11 and 1A are oxygen-response limits). This reading is strong, not verified.",
+        "Group 1 non-empty items as item: code value. 01: 19 3A; 05: 17 01; 06: 02 50; 09: 06 BB; 0B: 06 B6; 10: 0E 2F; 11: 0E 40; 12: 06 71; 13: 06 9B; 14: 0B 0F; 15: 0B 1E; 16: 09 C8; 17: 09 60; 1F: 06 1F.",
+        "Group 2. 02: 19 80; 0A: 01 0F; 0B: 06 B6; 1C: 05 92.",
+        "Group 3. 01: 19 80; 03: 19 3A; 06: 02 14; 07: 17 20; 0B: 06 B6; 10: 0E 16; 11: 0E 19; 1A: 02 0A.",
+        "Group 4. 01: 19 37; 03: 19 3A; 0B: 06 B6.",
+        "Group 5. 03: 19 3A; 0B: 06 B6; 12: 06 3A.",
+        "Group 6. 01: 19 8D; 03: 19 3A; 05: 17 2B; 09: 06 92; 0B: 06 B6; 13: 06 4D.",
+        "Group 7. 01: 19 00; 02: 19 00; 03: 19 3A; 09: 06 00; 0A: 19 00; 0B: 06 B6; 0F: 06 00; 1C: 05 00; 1F: 06 00.",
+        "Group 8. 0B: 06 B6.",
+        "Group 9. 01: 19 80; 03: 19 3A; 07: 17 40; 0B: 06 B6; 10: 0E 2A; 11: 0E 34; 12: 06 5C; 13: 06 8D."
+      ],
+      "effects": "read-only",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Table verified by static trace; interpretation as monitor limits strong; code and group meanings open; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "2D0101",
+          "note": "read group 1 item 01 (expected reply 19 3A)",
+          "observed": "echoed, reply 19 3A"
+        },
+        {
+          "hex": "2D0512",
+          "note": "read group 5 item 12, a fuel-trim monitor limit (expected reply 06 3A)",
+          "observed": "echoed, reply 06 3A"
+        }
+      ]
+    },
+    {
+      "id": "2E",
+      "name": "List pending faults",
+      "handler": "00E042",
+      "args": [],
+      "reply": "Echo 2E, then one byte per pending fault id in ascending order, then FE as the terminator.",
+      "summary": "Lists the fault ids that have failed at least once but have not yet qualified as stored faults.",
+      "hints": [
+        "There are no preconditions.",
+        "With no pending faults the reply after the echo is just FE.",
+        "The reply can be long (up to 257 bytes) and is sent back-to-back with no pacing; it stalls the PCM's serial service while it is sent (strong).",
+        "Fault id FE cannot occur in practice (the catalogue holds ids 00..EF), so FE is always the terminator (strong).",
+        "The meaning of pending versus qualified is strong, taken from the fault-history analysis.",
+        "This command can report id 00, which command 2F cannot query."
+      ],
+      "effects": "read-only",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Walk and reply verified by static trace; meaning strong; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "2E",
+          "note": "list pending (not yet qualified) fault ids",
+          "observed": "echoed, reply FE"
+        }
+      ]
+    },
+    {
+      "id": "2F",
+      "name": "Read fault history nibble",
+      "handler": "00E0A6",
+      "args": [
+        {
+          "name": "fault id",
+          "bytes": 1,
+          "hint": "01..FF; 00 gives no reply",
+          "default": "01"
+        }
+      ],
+      "reply": "Echo 2F, echo of the fault id, then one byte: the fault's history nibble (08..0F) if the fault has qualified, otherwise 00. Fault id 00 sends no reply byte.",
+      "summary": "Returns the stored history nibble of one fault id, but only if that fault has qualified.",
+      "hints": [
+        "There are no preconditions.",
+        "A reply of 00 means the fault has not qualified; a non-zero reply is always 08 or above.",
+        "In the nibble, bit 0 means pending or first failure and bit 3 means qualified (strong).",
+        "Fault id 00 cannot be queried, although command 2E can report it."
+      ],
+      "effects": "read-only",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; nibble bit meanings strong; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "2F01",
+          "note": "read the history nibble of fault id 01",
+          "observed": "echoed, reply 00"
+        }
+      ]
+    },
+    {
+      "id": "30",
+      "name": "Not a command (table overrun quirk)",
+      "handler": "",
+      "args": [],
+      "reply": "Echo 30 only. No handler runs and no reply byte is sent.",
+      "summary": "Not a normal table command. Byte 30 passes the first range test and is echoed, but it has no handler; it picks up a stray flag byte that disturbs the session state. Avoid sending it.",
+      "hints": [
+        "The flag byte it picks up is really the first byte of the handler table. It sets the high-speed, keyed-sequence, monitor and argument-pending bits in the session state.",
+        "According to sci-session.md, the next byte sent is then handled by the high-speed request handler while the link is still at 7812.5 baud. After an FE exit, one more byte is echoed, rejected and finished.",
+        "sci-commands-10-1B.md describes it more simply as waiting for one argument and then finishing, and sci-commands-26-2F.md says it finishes with no reply. The effect is rated open in those files.",
+        "The research judges this an off-by-one table overrun, not a feature.",
+        "To recover, stay silent for more than about 158 ms or send FE, then start again.",
+        "No example is given because the byte should not be sent."
+      ],
+      "effects": "unknown",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Trace verified in sci-session.md; intent and practical effect open; the three command files describe the outcome differently; not tested on hardware.",
+      "examples": []
+    },
+    {
+      "id": "F2",
+      "name": "High-speed mode: direct RAM read",
+      "handler": "00CB5A",
+      "args": [],
+      "reply": "Echo F2. Afterwards each offset byte sent is answered with one RAM byte (not echoed).",
+      "summary": "Not a normal table command. It is a mode byte that is only valid in high-speed mode (after command 12). It selects direct mode on page 0, where each following byte is an offset into RAM.",
+      "hints": [
+        "Only meaningful at 62500 baud after command 12. At 7812.5 baud in normal mode this byte is dropped silently.",
+        "In direct mode a byte b returns the RAM byte at F8000 + page x 100 + b. F2 sets the page to 0; use F6 to choose pages 0 to F.",
+        "The bytes F2, F4, F5, F6 and FE are always taken as mode bytes, so those offsets cannot be read in direct mode.",
+        "The public reference lists F0 to FD as table ids; this firmware has only F2, F4, F5 and F6 as mode bytes."
+      ],
+      "effects": "changes mode",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "F2",
+          "note": "in high-speed mode only: select direct RAM read on page 0; then for example byte 5A returns RAM F805A",
+          "observed": "after 12: answered F2"
+        }
+      ]
+    },
+    {
+      "id": "F4",
+      "name": "High-speed mode: table read (table ED22)",
+      "handler": "00CB5A",
+      "args": [],
+      "reply": "Echo F4. Afterwards each index byte sent is answered with one RAM byte (not echoed).",
+      "summary": "Not a normal table command. It is a mode byte that is only valid in high-speed mode. It selects table mode using the offset table at ROM ED22.",
+      "hints": [
+        "Only meaningful at 62500 baud after command 12.",
+        "In table mode an index n from 01 to EF returns the RAM byte at F8000 + the n-th table word, provided that word is below 0A05.",
+        "Pitfall: index 00, an index of F0 or above (other than the mode bytes), or a table word of 0A05 or above makes the PCM leave high-speed mode silently and return to 7812.5 baud with no reply.",
+        "The research does not list the contents of the table."
+      ],
+      "effects": "changes mode",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; table contents not documented; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "F4",
+          "note": "in high-speed mode only: select table read using table ED22",
+          "observed": "after 12: answered F4"
+        }
+      ]
+    },
+    {
+      "id": "F5",
+      "name": "High-speed mode: table read (table EF00)",
+      "handler": "00CB5A",
+      "args": [],
+      "reply": "Echo F5. Afterwards each index byte sent is answered with one RAM byte (not echoed).",
+      "summary": "Not a normal table command. It is a mode byte that is only valid in high-speed mode. It selects table mode using the offset table at ROM EF00.",
+      "hints": [
+        "Only meaningful at 62500 baud after command 12.",
+        "In table mode an index n from 01 to EF returns the RAM byte at F8000 + the n-th table word, provided that word is below 0A05.",
+        "Pitfall: index 00, an index of F0 or above (other than the mode bytes), or a table word of 0A05 or above makes the PCM leave high-speed mode silently and return to 7812.5 baud with no reply.",
+        "The research does not list the contents of the table."
+      ],
+      "effects": "changes mode",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; table contents not documented; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "F5",
+          "note": "in high-speed mode only: select table read using table EF00",
+          "observed": "after 12: answered F5"
+        }
+      ]
+    },
+    {
+      "id": "F6",
+      "name": "High-speed mode: select RAM page",
+      "handler": "00CB5A",
+      "args": [
+        {
+          "name": "page",
+          "bytes": 1,
+          "hint": "00..0F = RAM page (F8000 + page x 100); 10 and above exits high-speed mode silently",
+          "default": "00"
+        }
+      ],
+      "reply": "Echo F6, then echo of the page byte. Afterwards each offset byte sent is answered with one RAM byte (not echoed).",
+      "summary": "Not a normal table command. It is a mode byte that is only valid in high-speed mode. It selects direct mode on a chosen RAM page.",
+      "hints": [
+        "Only meaningful at 62500 baud after command 12.",
+        "After the page is set, a byte b returns the RAM byte at F8000 + page x 100 + b.",
+        "Pitfall: a page byte of 10 or above makes the PCM leave high-speed mode silently and return to 7812.5 baud with no reply.",
+        "Pages 0 to F cover F8000..F8FFF, which is wider than the F8000..F8A04 window of command 26."
+      ],
+      "effects": "changes mode",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "F603",
+          "note": "in high-speed mode only: select RAM page 3 (F8300..F83FF) for direct reads",
+          "observed": "after 12: answered F6 03"
+        }
+      ]
+    },
+    {
+      "id": "FE",
+      "name": "High-speed mode: exit",
+      "handler": "00CB5A",
+      "args": [],
+      "reply": "Echo FE at 62500 baud, then the PCM returns to 7812.5 baud.",
+      "summary": "Not a normal table command. It is the control byte that leaves high-speed mode and returns the link to normal mode at 7812.5 baud.",
+      "hints": [
+        "Only meaningful at 62500 baud after command 12. At 7812.5 baud in normal mode this byte is dropped silently.",
+        "The PCM waits for the echo to finish before changing rate. Change your own rate after you have received the echo.",
+        "Exit also clears the scan-tool-session flag F8109 bit 01.",
+        "FE has other meanings elsewhere: it is the list terminator in the replies to 10 and 2E, and the write step in the memory monitor after 1B."
+      ],
+      "effects": "changes mode",
+      "security": "none",
+      "depends_on_coprocessor": false,
+      "confidence": "Verified by static trace; not tested on hardware.",
+      "examples": [
+        {
+          "hex": "FE",
+          "note": "in high-speed mode only: return to normal mode at 7812.5 baud",
+          "observed": "after 12: answered FE"
+        }
+      ]
+    }
+  ]
+}

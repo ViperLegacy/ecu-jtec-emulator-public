@@ -1,0 +1,162 @@
+{
+  "source": "Hand-written starting points. Applying one restarts the PCM (a key cycle) so it reads the new values from the start. Sensor values are plausible round numbers for the situation, not measurements from a car.",
+  "start": "warm_key_on",
+  "scenarios": [
+    {
+      "id": "warm_key_on",
+      "name": "Warm, key on",
+      "description": "Engine off but warm, throttle closed, manifold at barometric pressure. This is how the emulator starts.",
+      "ignition": true,
+      "rpm": 0,
+      "sensors": {
+        "coolant_temp": 85,
+        "intake_temp": 30,
+        "throttle": 0.65,
+        "map": 4.5,
+        "o2_bank1_up": 0.45,
+        "o2_bank2_up": 0.45,
+        "o2_bank1_rear": 0.45,
+        "o2_bank2_rear": 0.45,
+        "fuel_level": 2.5
+      },
+      "speed_kmh": 0,
+      "gear": 0
+    },
+    {
+      "id": "cold_key_on",
+      "name": "Cold morning, key on",
+      "description": "Engine off, everything at 5 °C, throttle closed, manifold at barometric pressure. Restarts the PCM so it sees these at key-on.",
+      "ignition": true,
+      "rpm": 0,
+      "sensors": {
+        "coolant_temp": 5,
+        "intake_temp": 5,
+        "throttle": 0.65,
+        "map": 4.5,
+        "o2_bank1_up": 0.0,
+        "o2_bank2_up": 0.0,
+        "o2_bank1_rear": 0.0,
+        "o2_bank2_rear": 0.0,
+        "fuel_level": 2.5
+      },
+      "speed_kmh": 0,
+      "gear": 0
+    },
+    {
+      "id": "warm_idle",
+      "name": "Warm idle",
+      "description": "Fully warm, throttle closed, high manifold vacuum, oxygen sensors mid-range.",
+      "ignition": true,
+      "rpm": 800,
+      "sensors": {
+        "coolant_temp": 90,
+        "intake_temp": 38,
+        "throttle": 0.65,
+        "map": 1.4,
+        "o2_bank1_up": 0.45,
+        "o2_bank2_up": 0.45,
+        "o2_bank1_rear": 0.45,
+        "o2_bank2_rear": 0.45,
+        "fuel_level": 2.5
+      },
+      "speed_kmh": 0,
+      "gear": 0
+    },
+    {
+      "id": "cruise",
+      "name": "Light cruise",
+      "description": "Warm, part throttle, moderate vacuum, 2000 rpm in 5th (about 110 km/h).",
+      "ignition": true,
+      "rpm": 2000,
+      "sensors": {
+        "coolant_temp": 90,
+        "intake_temp": 32,
+        "throttle": 1.2,
+        "map": 2.2,
+        "o2_bank1_up": 0.45,
+        "o2_bank2_up": 0.45,
+        "o2_bank1_rear": 0.45,
+        "o2_bank2_rear": 0.45,
+        "fuel_level": 2.5
+      },
+      "speed_kmh": 0,
+      "gear": 5
+    },
+    {
+      "id": "wot",
+      "name": "Wide open throttle",
+      "description": "Warm, throttle wide open, manifold near barometric, rich oxygen reading, 5500 rpm in 2nd (about 127 km/h).",
+      "ignition": true,
+      "rpm": 5500,
+      "sensors": {
+        "coolant_temp": 93,
+        "intake_temp": 35,
+        "throttle": 4.2,
+        "map": 4.4,
+        "o2_bank1_up": 0.85,
+        "o2_bank2_up": 0.85,
+        "o2_bank1_rear": 0.7,
+        "o2_bank2_rear": 0.7,
+        "fuel_level": 2.5
+      },
+      "speed_kmh": 0,
+      "gear": 2
+    },
+    {
+      "id": "overheat",
+      "name": "Overheating",
+      "description": "Coolant at 118 °C with the engine idling.",
+      "ignition": true,
+      "rpm": 800,
+      "sensors": {
+        "coolant_temp": 118,
+        "intake_temp": 54,
+        "throttle": 0.65,
+        "map": 1.4,
+        "fuel_level": 2.5
+      },
+      "speed_kmh": 0,
+      "gear": 0
+    },
+    {
+      "id": "parking",
+      "name": "Parking lot, 5 km/h",
+      "description": "Warm, idling, rolling at 5 km/h with the speed set directly. Reverse is still allowed below about 6 km/h.",
+      "ignition": true,
+      "rpm": 800,
+      "speed_kmh": 5,
+      "gear": 0,
+      "sensors": {
+        "coolant_temp": 90,
+        "intake_temp": 30,
+        "throttle": 0.65,
+        "map": 1.4,
+        "o2_bank1_up": 0.45,
+        "o2_bank2_up": 0.45,
+        "o2_bank1_rear": 0.45,
+        "o2_bank2_rear": 0.45,
+        "fuel_level": 2.5
+      }
+    },
+    {
+      "id": "first_gear",
+      "name": "Pulling away in 1st",
+      "description": "Warm, light throttle, 1500 rpm in 1st (about 23 km/h). The skip-shift logic recognises 1st gear from the rpm/speed ratio; this calibration's coolant gate still blocks it.",
+      "ignition": true,
+      "rpm": 1500,
+      "speed_kmh": 0,
+      "gear": 1,
+      "sensors": {
+        "coolant_temp": 90,
+        "intake_temp": 30,
+        "throttle": 0.9,
+        "map": 2.4,
+        "o2_bank1_up": 0.45,
+        "o2_bank2_up": 0.45,
+        "o2_bank1_rear": 0.45,
+        "o2_bank2_rear": 0.45,
+        "fuel_level": 2.5
+      }
+    }
+  ]
+}

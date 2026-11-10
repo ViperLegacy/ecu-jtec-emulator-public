@@ -1,0 +1,399 @@
+{
+ "source": "build_sensor_curves.py: thermistor table from tables_view.json, linear pins 0-5 V",
+ "sensors": [
+  {
+   "id": "coolant_temp",
+   "name": "Coolant temperature",
+   "unit": "°C",
+   "digits": 0,
+   "input": {
+    "set": "a",
+    "ch": 1
+   },
+   "points": [
+    [
+     55,
+     150
+    ],
+    [
+     71,
+     140
+    ],
+    [
+     85,
+     130
+    ],
+    [
+     108,
+     120
+    ],
+    [
+     137,
+     110
+    ],
+    [
+     175,
+     100
+    ],
+    [
+     222,
+     90
+    ],
+    [
+     282,
+     80
+    ],
+    [
+     354,
+     70
+    ],
+    [
+     440,
+     60
+    ],
+    [
+     534,
+     50
+    ],
+    [
+     631,
+     40
+    ],
+    [
+     725,
+     30
+    ],
+    [
+     809,
+     20
+    ],
+    [
+     877,
+     10
+    ],
+    [
+     929,
+     0
+    ],
+    [
+     966,
+     -10
+    ],
+    [
+     990,
+     -20
+    ],
+    [
+     1005,
+     -30
+    ],
+    [
+     1014,
+     -40
+    ]
+   ],
+   "min": -40,
+   "max": 150,
+   "step": 1,
+   "faults": true,
+   "note": "firmware conversion table ROM 000410; outside 55..1014 the reading holds at the end value"
+  },
+  {
+   "id": "intake_temp",
+   "name": "Intake air temperature",
+   "unit": "°C",
+   "digits": 0,
+   "input": {
+    "set": "a",
+    "ch": 0
+   },
+   "points": [
+    [
+     55,
+     150
+    ],
+    [
+     71,
+     140
+    ],
+    [
+     85,
+     130
+    ],
+    [
+     108,
+     120
+    ],
+    [
+     137,
+     110
+    ],
+    [
+     175,
+     100
+    ],
+    [
+     222,
+     90
+    ],
+    [
+     282,
+     80
+    ],
+    [
+     354,
+     70
+    ],
+    [
+     440,
+     60
+    ],
+    [
+     534,
+     50
+    ],
+    [
+     631,
+     40
+    ],
+    [
+     725,
+     30
+    ],
+    [
+     809,
+     20
+    ],
+    [
+     877,
+     10
+    ],
+    [
+     929,
+     0
+    ],
+    [
+     966,
+     -10
+    ],
+    [
+     990,
+     -20
+    ],
+    [
+     1005,
+     -30
+    ],
+    [
+     1014,
+     -40
+    ]
+   ],
+   "min": -40,
+   "max": 150,
+   "step": 1,
+   "faults": true,
+   "note": "firmware conversion table ROM 000410; outside 55..1014 the reading holds at the end value"
+  },
+  {
+   "id": "throttle",
+   "name": "Throttle position sensor",
+   "unit": "V",
+   "digits": 2,
+   "input": {
+    "set": "a",
+    "ch": 2
+   },
+   "points": [
+    [
+     0,
+     0.0
+    ],
+    [
+     1023,
+     5.0
+    ]
+   ],
+   "min": 0,
+   "max": 5.0,
+   "step": 0.01,
+   "faults": true,
+   "note": "pin voltage; 10-bit converter, 5 V reference"
+  },
+  {
+   "id": "map",
+   "name": "Manifold pressure sensor",
+   "unit": "V",
+   "digits": 2,
+   "input": {
+    "set": "b",
+    "ch": 3
+   },
+   "points": [
+    [
+     0,
+     0.0
+    ],
+    [
+     1023,
+     5.0
+    ]
+   ],
+   "min": 0,
+   "max": 5.0,
+   "step": 0.01,
+   "faults": true,
+   "note": "pin voltage; 10-bit converter, 5 V reference"
+  },
+  {
+   "id": "o2_bank1_up",
+   "name": "Right upstream O2 (bank 1)",
+   "unit": "V",
+   "digits": 2,
+   "input": {
+    "set": "a",
+    "ch": 3
+   },
+   "points": [
+    [
+     0,
+     0.0
+    ],
+    [
+     1023,
+     5.0
+    ]
+   ],
+   "min": 0,
+   "max": 5.0,
+   "step": 0.01,
+   "faults": true,
+   "note": "pin voltage; 10-bit converter, 5 V reference"
+  },
+  {
+   "id": "o2_bank2_up",
+   "name": "Left upstream O2 (bank 2)",
+   "unit": "V",
+   "digits": 2,
+   "input": {
+    "set": "a",
+    "ch": 4
+   },
+   "points": [
+    [
+     0,
+     0.0
+    ],
+    [
+     1023,
+     5.0
+    ]
+   ],
+   "min": 0,
+   "max": 5.0,
+   "step": 0.01,
+   "faults": true,
+   "note": "pin voltage; 10-bit converter, 5 V reference"
+  },
+  {
+   "id": "o2_bank1_rear",
+   "name": "Right downstream O2",
+   "unit": "V",
+   "digits": 2,
+   "input": {
+    "set": "a",
+    "ch": 5
+   },
+   "points": [
+    [
+     0,
+     0.0
+    ],
+    [
+     1023,
+     5.0
+    ]
+   ],
+   "min": 0,
+   "max": 5.0,
+   "step": 0.01,
+   "faults": true,
+   "note": "pin voltage; 10-bit converter, 5 V reference"
+  },
+  {
+   "id": "o2_bank2_rear",
+   "name": "Left downstream O2",
+   "unit": "V",
+   "digits": 2,
+   "input": {
+    "set": "a",
+    "ch": 6
+   },
+   "points": [
+    [
+     0,
+     0.0
+    ],
+    [
+     1023,
+     5.0
+    ]
+   ],
+   "min": 0,
+   "max": 5.0,
+   "step": 0.01,
+   "faults": true,
+   "note": "pin voltage; 10-bit converter, 5 V reference"
+  },
+  {
+   "id": "fuel_level",
+   "name": "Fuel level sender",
+   "unit": "V",
+   "digits": 2,
+   "input": {
+    "set": "b",
+    "ch": 7
+   },
+   "points": [
+    [
+     0,
+     0.0
+    ],
+    [
+     1023,
+     5.0
+    ]
+   ],
+   "min": 0,
+   "max": 5.0,
+   "step": 0.01,
+   "faults": true,
+   "note": "pin voltage; 10-bit converter, 5 V reference"
+  },
+  {
+   "id": "speed_control_switch",
+   "name": "Speed-control switch",
+   "unit": "V",
+   "digits": 2,
+   "input": {
+    "set": "b",
+    "ch": 2
+   },
+   "points": [
+    [
+     0,
+     0.0
+    ],
+    [
+     1023,
+     5.0
+    ]
+   ],
+   "min": 0,
+   "max": 5.0,
+   "step": 0.01,
+   "faults": true,
+   "note": "pin voltage; 10-bit converter, 5 V reference"
+  }
+ ]
+}

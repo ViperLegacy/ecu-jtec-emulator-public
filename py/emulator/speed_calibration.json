@@ -1,0 +1,103 @@
+{
+ "source": "build_speed_calibration.py: pulse trains fed to the emulated firmware, speed read from F8135",
+ "pulses_per_km": 15450.33,
+ "pulses_per_mile": 24864.9,
+ "kmh_per_hz": 0.233005,
+ "worst_fit_error_kmh": 0.37,
+ "reciprocal_constant_v10": 9266432,
+ "reciprocal_constant_other_profile": 28800000,
+ "note": "Implied by the firmware's own arithmetic with the timer at 1 MHz (16 MHz system clock, inferred). The other profile's constant works out to exactly 8000 pulses per mile, the usual Chrysler figure, which supports reading the constants this way; the V10 figure has not been checked against a real sensor.",
+ "samples": [
+  {
+   "hz": 5,
+   "period_counts": 200000,
+   "speed_word": 36,
+   "byte": 1,
+   "kmh": 0.91
+  },
+  {
+   "hz": 10,
+   "period_counts": 100000,
+   "speed_word": 78,
+   "byte": 2,
+   "kmh": 1.96
+  },
+  {
+   "hz": 20,
+   "period_counts": 50000,
+   "speed_word": 179,
+   "byte": 5,
+   "kmh": 4.5
+  },
+  {
+   "hz": 40,
+   "period_counts": 25000,
+   "speed_word": 370,
+   "byte": 11,
+   "kmh": 9.3
+  },
+  {
+   "hz": 60,
+   "period_counts": 16667,
+   "speed_word": 556,
+   "byte": 17,
+   "kmh": 13.98
+  },
+  {
+   "hz": 100,
+   "period_counts": 10000,
+   "speed_word": 927,
+   "byte": 28,
+   "kmh": 23.31
+  },
+  {
+   "hz": 150,
+   "period_counts": 6666,
+   "speed_word": 1390,
+   "byte": 43,
+   "kmh": 34.95
+  },
+  {
+   "hz": 200,
+   "period_counts": 5000,
+   "speed_word": 1853,
+   "byte": 57,
+   "kmh": 46.6
+  },
+  {
+   "hz": 300,
+   "period_counts": 3333,
+   "speed_word": 2777,
+   "byte": 86,
+   "kmh": 69.83
+  },
+  {
+   "hz": 400,
+   "period_counts": 2500,
+   "speed_word": 3706,
+   "byte": 115,
+   "kmh": 93.19
+  },
+  {
+   "hz": 600,
+   "period_counts": 1666,
+   "speed_word": 5562,
+   "byte": 173,
+   "kmh": 139.86
+  },
+  {
+   "hz": 800,
+   "period_counts": 1250,
+   "speed_word": 7413,
+   "byte": 231,
+   "kmh": 186.41
+  },
+  {
+   "hz": 1000,
+   "period_counts": 1000,
+   "speed_word": 9266,
+   "byte": 255,
+   "kmh": 233.0
+  }
+ ]
+}

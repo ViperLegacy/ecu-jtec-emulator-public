@@ -1,0 +1,1806 @@
+{
+  "source": "VIP_2A03.ori diagnostic-code catalog at ROM 1222 (3 bytes per internal id: BCD generic-code word + MIL flash byte), named from the 1997 Dodge Viper service manual trouble-code chart pp. 25-3..25-7 (PDF 926-930); monitor tables 70E2/712D used for enablement notes",
+  "list_address": "F8868",
+  "list_length": 8,
+  "notes": [
+    "Command 10 sends the list as stored (observed newest first), stops at the first 00, then sends FE and a checksum.",
+    "MIL flash codes 12 (battery disconnected within the last 50 key-on cycles) and 55 (end of code display) come from the blink serializer and have no internal id.",
+    "Ids 00, BF, CE, CF, DD-DF and E1-E9 have an all-zero catalog record and ids F0-FF lie past the catalog end (14F2); they are omitted.",
+    "'Right Rear (or just)' is the manual's wording for the right-bank sensor; 'Left Front' is the left bank.",
+    "ENABLED / disabled in the evidence field refers to bit 01 of the monitor's configuration byte in this image; ids with no monitor-table entry may still be set by other code or by the coprocessor."
+  ],
+  "faults": {
+    "01": {
+      "pcode": "P0340",
+      "blink": "54",
+      "name": "No Cam Signal at PCM",
+      "detail": "No camshaft signal detected during engine cranking.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01225 = 03 40 54 (1222 + 3*id); service manual p. 25-3 (PDF page 926), HEX CODE 01; configured monitor C106 (record 712D=21 01, ENABLED)"
+    },
+    "02": {
+      "pcode": "P0601",
+      "blink": "53",
+      "name": "Internal Controller Failure",
+      "detail": "PCM internal fault condition detected.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01228 = 06 01 53 (1222 + 3*id); service manual p. 25-3 (PDF page 926), HEX CODE 02; configured monitor C15A (record 713B=21 02, ENABLED)"
+    },
+    "03": {
+      "pcode": "",
+      "blink": "52",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 52 (the manual uses flash 52 for hex 76/78), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 0122B = 00 00 52 (1222 + 3*id)"
+    },
+    "04": {
+      "pcode": "",
+      "blink": "51",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 51 (the manual uses flash 51 for hex 77/79), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 0122E = 00 00 51 (1222 + 3*id)"
+    },
+    "05": {
+      "pcode": "",
+      "blink": "47",
+      "name": "Charging System Voltage Too Low",
+      "detail": "Battery voltage sense input below target charging during engine operation; also no significant change in battery voltage during active test of generator output circuit.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01231 = 00 00 47 (1222 + 3*id); service manual p. 25-3 (PDF page 926), HEX CODE 05; configured monitor C202 (record 7157=31 05, ENABLED)"
+    },
+    "06": {
+      "pcode": "",
+      "blink": "46",
+      "name": "Charging System Voltage Too High",
+      "detail": "Battery voltage sense input above target charging voltage during engine operation.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01234 = 00 00 46 (1222 + 3*id); service manual p. 25-3 (PDF page 926), HEX CODE 06; simple check slot C0F0 (routine 019EAA, config 70109=31, ENABLED)"
+    },
+    "07": {
+      "pcode": "",
+      "blink": "36",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 36; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01237 = 00 00 36 (1222 + 3*id)"
+    },
+    "08": {
+      "pcode": "",
+      "blink": "52",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 52 (the manual uses flash 52 for hex 76/78), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 0123A = 00 00 52 (1222 + 3*id)"
+    },
+    "09": {
+      "pcode": "",
+      "blink": "51",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 51 (the manual uses flash 51 for hex 77/79), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 0123D = 00 00 51 (1222 + 3*id)"
+    },
+    "0A": {
+      "pcode": "",
+      "blink": "42",
+      "name": "Auto Shutdown Relay Control Circuit",
+      "detail": "An open or shorted condition detected in the auto shutdown relay circuit.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01240 = 00 00 42 (1222 + 3*id); service manual p. 25-3 (PDF page 926), HEX CODE 0A"
+    },
+    "0B": {
+      "pcode": "",
+      "blink": "41",
+      "name": "Generator Field Not Switching Properly",
+      "detail": "An open or shorted condition detected in the generator field control circuit.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01243 = 00 00 41 (1222 + 3*id); service manual p. 25-3 (PDF page 926), HEX CODE 0B"
+    },
+    "0C": {
+      "pcode": "P0743",
+      "blink": "37",
+      "name": "Torque Converter Clutch Circuit Electrical",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0743, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01246 = 07 43 37 (1222 + 3*id)"
+    },
+    "0D": {
+      "pcode": "",
+      "blink": "36",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 36; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01249 = 00 00 36 (1222 + 3*id)"
+    },
+    "0E": {
+      "pcode": "P1491",
+      "blink": "35",
+      "name": "Radiator Fan Control Relay Circuit",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1491 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 0124C = 14 91 35 (1222 + 3*id)"
+    },
+    "0F": {
+      "pcode": "",
+      "blink": "34",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 34; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 0124F = 00 00 34 (1222 + 3*id); simple check slot C0F8 (routine 01A204, config 70115=30, disabled in this image)"
+    },
+    "10": {
+      "pcode": "",
+      "blink": "33",
+      "name": "A/C Clutch Relay Circuit",
+      "detail": "An open or shorted condition detected in the A/C clutch relay circuit.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01252 = 00 00 33 (1222 + 3*id); service manual p. 25-3 (PDF page 926), HEX CODE 10"
+    },
+    "11": {
+      "pcode": "P0403",
+      "blink": "32",
+      "name": "Exhaust Gas Recirculation Circuit Malfunction",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0403, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01255 = 04 03 32 (1222 + 3*id)"
+    },
+    "12": {
+      "pcode": "P0443",
+      "blink": "31",
+      "name": "EVAP Purge Solenoid Circuit",
+      "detail": "An open or shorted condition detected in the duty cycle purge solenoid circuit.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01258 = 04 43 31 (1222 + 3*id); service manual p. 25-3 (PDF page 926), HEX CODE 12"
+    },
+    "13": {
+      "pcode": "P0203",
+      "blink": "27",
+      "name": "Injector #3 Control Circuit",
+      "detail": "Injector #3 output driver does not respond properly to the control signal.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0125B = 02 03 27 (1222 + 3*id); service manual p. 25-3 (PDF page 926), HEX CODE 13"
+    },
+    "14": {
+      "pcode": "P0202",
+      "blink": "27",
+      "name": "Injector #2 Control Circuit",
+      "detail": "Injector #2 output driver does not respond properly to the control signal.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0125E = 02 02 27 (1222 + 3*id); service manual p. 25-3 (PDF page 926), HEX CODE 14"
+    },
+    "15": {
+      "pcode": "P0201",
+      "blink": "27",
+      "name": "Injector #1 Control Circuit",
+      "detail": "Injector #1 output driver does not respond properly to the control signal.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01261 = 02 01 27 (1222 + 3*id); service manual p. 25-3 (PDF page 926), HEX CODE 15"
+    },
+    "16": {
+      "pcode": "",
+      "blink": "26",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 26; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01264 = 00 00 26 (1222 + 3*id)"
+    },
+    "17": {
+      "pcode": "",
+      "blink": "26",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 26; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01267 = 00 00 26 (1222 + 3*id)"
+    },
+    "18": {
+      "pcode": "",
+      "blink": "26",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 26; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 0126A = 00 00 26 (1222 + 3*id)"
+    },
+    "19": {
+      "pcode": "P0505",
+      "blink": "25",
+      "name": "Idle Air Control Motor Circuits",
+      "detail": "A shorted or open condition detected in one or more of the idle air control motor circuits.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0126D = 05 05 25 (1222 + 3*id); service manual p. 25-3 (PDF page 926), HEX CODE 19"
+    },
+    "1A": {
+      "pcode": "P0122",
+      "blink": "24",
+      "name": "Throttle Position Sensor Voltage Low",
+      "detail": "Throttle position sensor input below the minimum acceptable voltage.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01270 = 01 22 24 (1222 + 3*id); service manual p. 25-3 (PDF page 926), HEX CODE 1A; simple check slot C0DC (routine 010084, config 70EB=B9, ENABLED, low-side id)"
+    },
+    "1B": {
+      "pcode": "P0123",
+      "blink": "24",
+      "name": "Throttle Position Sensor Voltage High",
+      "detail": "Throttle position sensor input above the maximum acceptable voltage.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01273 = 01 23 24 (1222 + 3*id); service manual p. 25-3 (PDF page 926), HEX CODE 1B; simple check slot C0DC (routine 010084, config 70EB=B9, ENABLED, high-side id)"
+    },
+    "1C": {
+      "pcode": "P0112",
+      "blink": "23",
+      "name": "Intake Air Temperature Circuit Low Input",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0112, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01276 = 01 12 23 (1222 + 3*id)"
+    },
+    "1D": {
+      "pcode": "P0113",
+      "blink": "23",
+      "name": "Intake Air Temperature Circuit High Input",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0113, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01279 = 01 13 23 (1222 + 3*id)"
+    },
+    "1E": {
+      "pcode": "P0117",
+      "blink": "22",
+      "name": "ECT Sensor Voltage Too Low",
+      "detail": "Engine coolant temperature sensor input below minimum acceptable voltage.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0127C = 01 17 22 (1222 + 3*id); service manual p. 25-3 (PDF page 926), HEX CODE 1E; simple check slot C0DA (routine 010070, config 70E8=B9, ENABLED, low-side id)"
+    },
+    "1F": {
+      "pcode": "P0118",
+      "blink": "22",
+      "name": "ECT Sensor Voltage Too High",
+      "detail": "Engine coolant temperature sensor input above maximum acceptable voltage.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0127F = 01 18 22 (1222 + 3*id); service manual p. 25-3 (PDF page 926), HEX CODE 1F; simple check slot C0DA (routine 010070, config 70E8=B9, ENABLED, high-side id)"
+    },
+    "20": {
+      "pcode": "P0134",
+      "blink": "21",
+      "name": "O2 Sensor Circuit No Activity Detected (Bank 1 Sensor 1)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0134, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01282 = 01 34 21 (1222 + 3*id)"
+    },
+    "21": {
+      "pcode": "",
+      "blink": "17",
+      "name": "Engine Is Cold Too Long",
+      "detail": "Engine did not reach operating temperature within acceptable limits.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01285 = 00 00 17 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 21; configured monitor C21A (record 715B=01 21, ENABLED)"
+    },
+    "22": {
+      "pcode": "",
+      "blink": "37",
+      "name": "Skip Shift Solenoid Circuit",
+      "detail": "An open or shorted condition detected in the skip shift solenoid circuit.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01288 = 00 00 37 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 22"
+    },
+    "23": {
+      "pcode": "P0500",
+      "blink": "15",
+      "name": "No Vehicle Speed Sensor Signal",
+      "detail": "No vehicle speed sensor signal detected during road load conditions.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0128B = 05 00 15 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 23; configured monitor C142 (record 7137=39 23, ENABLED)"
+    },
+    "24": {
+      "pcode": "P0107",
+      "blink": "14",
+      "name": "MAP Sensor Voltage Too Low",
+      "detail": "MAP sensor input below minimum acceptable voltage.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0128E = 01 07 14 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 24; simple check slot C0D6 (routine 01007C, config 70E2=B9, ENABLED, low-side id)"
+    },
+    "25": {
+      "pcode": "P0108",
+      "blink": "14",
+      "name": "MAP Sensor Voltage Too High",
+      "detail": "MAP sensor input above maximum acceptable voltage.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01291 = 01 08 14 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 25; simple check slot C0D6 (routine 01007C, config 70E2=B9, ENABLED, high-side id)"
+    },
+    "26": {
+      "pcode": "",
+      "blink": "13",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 13 (the manual uses flash 13 for hex 27), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01294 = 00 00 13 (1222 + 3*id)"
+    },
+    "27": {
+      "pcode": "P1297",
+      "blink": "13",
+      "name": "No Change in MAP From Start to Run",
+      "detail": "No difference recognized between the engine MAP reading and the barometric (atmospheric) pressure reading from start-up.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01297 = 12 97 13 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 27; configured monitor C11E (record 7131=B9 27, ENABLED)"
+    },
+    "28": {
+      "pcode": "P0320",
+      "blink": "11",
+      "name": "No Crank Reference Signal at PCM",
+      "detail": "No crank reference signal detected during engine cranking. (The manual chart shows no generic code for this row; the ROM catalog carries P0320.)",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0129A = 03 20 11 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 28; simple check slot C102 (routine 01A0CA, config 70124=21, ENABLED)"
+    },
+    "29": {
+      "pcode": "P0353",
+      "blink": "43",
+      "name": "Ignition Coil #3 Primary Circuit",
+      "detail": "Peak primary circuit current not achieved with maximum dwell time.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0129D = 03 53 43 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 29"
+    },
+    "2A": {
+      "pcode": "P0352",
+      "blink": "43",
+      "name": "Ignition Coil #2 Primary Circuit",
+      "detail": "Peak primary circuit current not achieved with maximum dwell time.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 012A0 = 03 52 43 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 2A"
+    },
+    "2B": {
+      "pcode": "P0351",
+      "blink": "43",
+      "name": "Ignition Coil #1 Primary Circuit",
+      "detail": "Peak primary circuit current not achieved with maximum dwell time.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 012A3 = 03 51 43 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 2B"
+    },
+    "2C": {
+      "pcode": "P1389",
+      "blink": "42",
+      "name": "No ASD Relay Output Voltage at PCM",
+      "detail": "An open condition detected in the ASD relay output circuit. (The manual chart shows no generic code for this row; the ROM catalog carries P1389.)",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 012A6 = 13 89 42 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 2C; simple check slot C0EE (routine 019E80, config 70106=21, ENABLED)"
+    },
+    "2D": {
+      "pcode": "",
+      "blink": "52",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 52 (the manual uses flash 52 for hex 76/78), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 012A9 = 00 00 52 (1222 + 3*id)"
+    },
+    "2E": {
+      "pcode": "P0401",
+      "blink": "32",
+      "name": "Exhaust Gas Recirculation Flow Insufficient Detected",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0401, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 012AC = 04 01 32 (1222 + 3*id)"
+    },
+    "2F": {
+      "pcode": "",
+      "blink": "61",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 61; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 012AF = 00 00 61 (1222 + 3*id)"
+    },
+    "30": {
+      "pcode": "P1697",
+      "blink": "62",
+      "name": "PCM Failure SRI Mile Not Stored",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1697 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 012B2 = 16 97 62 (1222 + 3*id)"
+    },
+    "31": {
+      "pcode": "P1696",
+      "blink": "63",
+      "name": "PCM Failure EEPROM Write Denied",
+      "detail": "Unsuccessful attempt to write to an EEPROM location by the PCM.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 012B5 = 16 96 63 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 31"
+    },
+    "32": {
+      "pcode": "P0753",
+      "blink": "37",
+      "name": "Shift Solenoid A Electrical",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0753, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 012B8 = 07 53 37 (1222 + 3*id)"
+    },
+    "33": {
+      "pcode": "P0412",
+      "blink": "36",
+      "name": "Secondary Air Injection System Switching Valve A Circuit Malfunction",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0412, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 012BB = 04 12 36 (1222 + 3*id)"
+    },
+    "34": {
+      "pcode": "",
+      "blink": "35",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 35 (the manual uses flash 35 for hex 5C/5D), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 012BE = 00 00 35 (1222 + 3*id)"
+    },
+    "35": {
+      "pcode": "",
+      "blink": "35",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 35 (the manual uses flash 35 for hex 5C/5D), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 012C1 = 00 00 35 (1222 + 3*id)"
+    },
+    "36": {
+      "pcode": "",
+      "blink": "32",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 32; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 012C4 = 00 00 32 (1222 + 3*id)"
+    },
+    "37": {
+      "pcode": "P0209",
+      "blink": "27",
+      "name": "Injector #9 Control Circuit",
+      "detail": "Injector #9 output does not respond properly to the control signal.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 012C7 = 02 09 27 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 37"
+    },
+    "38": {
+      "pcode": "P0210",
+      "blink": "27",
+      "name": "Injector #10 Control Circuit",
+      "detail": "Injector #10 output does not respond properly to the control signal.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 012CA = 02 10 27 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 38"
+    },
+    "39": {
+      "pcode": "P0112",
+      "blink": "23",
+      "name": "Intake Air Temp Sensor Voltage Low",
+      "detail": "Intake air temperature sensor input voltage too low (the manual prints \"below the maximum acceptable voltage\").",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 012CD = 01 12 23 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 39; simple check slot C0D8 (routine 010074, config 70E5=B9, ENABLED, low-side id)"
+    },
+    "3A": {
+      "pcode": "P0113",
+      "blink": "23",
+      "name": "Intake Air Temp Sensor Voltage High",
+      "detail": "Intake air temperature sensor input voltage too high (the manual prints \"above the minimum acceptable voltage\").",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 012D0 = 01 13 23 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 3A; simple check slot C0D8 (routine 010074, config 70E5=B9, ENABLED, high-side id)"
+    },
+    "3B": {
+      "pcode": "",
+      "blink": "16",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 16; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 012D3 = 00 00 16 (1222 + 3*id)"
+    },
+    "3C": {
+      "pcode": "P0106",
+      "blink": "61",
+      "name": "Manifold Absolute Pressure/Barometric Pressure Circuit Range/Performance Problem",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0106, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 012D6 = 01 06 61 (1222 + 3*id)"
+    },
+    "3D": {
+      "pcode": "P0204",
+      "blink": "27",
+      "name": "Injector #4 Control Circuit",
+      "detail": "Injector #4 output driver does not respond properly to the control signal.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 012D9 = 02 04 27 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 3D"
+    },
+    "3E": {
+      "pcode": "P0132",
+      "blink": "21",
+      "name": "Right Rear (or just) Upstream O2S Shorted to Voltage",
+      "detail": "Oxygen sensor input voltage maintained above the normal operating range.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 012DC = 01 32 21 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 3E; configured monitor C226 (record 715D=39 3E, ENABLED)"
+    },
+    "3F": {
+      "pcode": "",
+      "blink": "52",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 52 (the manual uses flash 52 for hex 76/78), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 012DF = 00 00 52 (1222 + 3*id)"
+    },
+    "40": {
+      "pcode": "",
+      "blink": "67",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 67; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 012E2 = 00 00 67 (1222 + 3*id)"
+    },
+    "41": {
+      "pcode": "P0154",
+      "blink": "21",
+      "name": "O2 Sensor Circuit No Activity Detected (Bank 2 Sensor 1)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0154, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 012E5 = 01 54 21 (1222 + 3*id)"
+    },
+    "42": {
+      "pcode": "P0152",
+      "blink": "21",
+      "name": "Left Front O2S Shorted to Voltage",
+      "detail": "Oxygen sensor input voltage maintained above the normal operating range.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 012E8 = 01 52 21 (1222 + 3*id); service manual p. 25-4 (PDF page 927), HEX CODE 42; configured monitor C23E (record 7161=39 42, ENABLED)"
+    },
+    "43": {
+      "pcode": "",
+      "blink": "51",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 51 (the manual uses flash 51 for hex 77/79), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 012EB = 00 00 51 (1222 + 3*id)"
+    },
+    "44": {
+      "pcode": "P0600",
+      "blink": "53",
+      "name": "Serial Communication Link Malfunction",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0600, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 012EE = 06 00 53 (1222 + 3*id)"
+    },
+    "45": {
+      "pcode": "P0205",
+      "blink": "27",
+      "name": "Injector #5 Control Circuit",
+      "detail": "Injector #5 output driver does not respond properly to the control signal.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 012F1 = 02 05 27 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 45"
+    },
+    "46": {
+      "pcode": "P0206",
+      "blink": "27",
+      "name": "Injector #6 Control Circuit",
+      "detail": "Injector #6 output driver does not respond properly to the control signal.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 012F4 = 02 06 27 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 46"
+    },
+    "47": {
+      "pcode": "",
+      "blink": "44",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 44 (the manual uses flash 44 for hex 99/9A), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 012F7 = 00 00 44 (1222 + 3*id)"
+    },
+    "48": {
+      "pcode": "",
+      "blink": "54",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 54 (the manual uses flash 54 for hex 01), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 012FA = 00 00 54 (1222 + 3*id)"
+    },
+    "49": {
+      "pcode": "",
+      "blink": "11",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 11 (the manual uses flash 11 for hex 28/9D/BA), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 012FD = 00 00 11 (1222 + 3*id)"
+    },
+    "4A": {
+      "pcode": "P0712",
+      "blink": "45",
+      "name": "Transmission Fluid Temperature Sensor Circuit Low Input",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0712, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01300 = 07 12 45 (1222 + 3*id); simple check slot C0E8 (routine 019F3A, config 70FD=30, disabled in this image, low-side id)"
+    },
+    "4B": {
+      "pcode": "P0713",
+      "blink": "45",
+      "name": "Transmission Fluid Temperature Sensor Circuit High Input",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0713, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01303 = 07 13 45 (1222 + 3*id); simple check slot C0E8 (routine 019F3A, config 70FD=30, disabled in this image, high-side id)"
+    },
+    "4C": {
+      "pcode": "P0354",
+      "blink": "43",
+      "name": "Ignition Coil #4 Circuit",
+      "detail": "Peak primary circuit current not achieved with maximum dwell time.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01306 = 03 54 43 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 4C"
+    },
+    "4D": {
+      "pcode": "P0355",
+      "blink": "43",
+      "name": "Ignition Coil #5 Circuit",
+      "detail": "Peak primary circuit current not achieved with maximum dwell time.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01309 = 03 55 43 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 4D"
+    },
+    "4E": {
+      "pcode": "",
+      "blink": "51",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 51 (the manual uses flash 51 for hex 77/79), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 0130C = 00 00 51 (1222 + 3*id)"
+    },
+    "4F": {
+      "pcode": "P0207",
+      "blink": "27",
+      "name": "Injector #7 Control Circuit",
+      "detail": "Injector #7 output driver does not respond properly to the control signal.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0130F = 02 07 27 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 4F"
+    },
+    "50": {
+      "pcode": "P0208",
+      "blink": "27",
+      "name": "Injector #8 Control Circuit",
+      "detail": "Injector #8 output driver does not respond properly to the control signal.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01312 = 02 08 27 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 50"
+    },
+    "51": {
+      "pcode": "",
+      "blink": "76",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 76; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01315 = 00 00 76 (1222 + 3*id)"
+    },
+    "52": {
+      "pcode": "",
+      "blink": "77",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 77; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01318 = 00 00 77 (1222 + 3*id); simple check slot C0FA (routine 01A220, config 70118=30, disabled in this image)"
+    },
+    "53": {
+      "pcode": "",
+      "blink": "16",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 16; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 0131B = 00 00 16 (1222 + 3*id)"
+    },
+    "54": {
+      "pcode": "P0179",
+      "blink": "64",
+      "name": "Fuel Composition Sensor Circuit High Input",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0179, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 0131E = 01 79 64 (1222 + 3*id)"
+    },
+    "55": {
+      "pcode": "P0178",
+      "blink": "64",
+      "name": "Fuel Composition Sensor Circuit Low Input",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0178, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01321 = 01 78 64 (1222 + 3*id)"
+    },
+    "56": {
+      "pcode": "",
+      "blink": "34",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 34; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01324 = 00 00 34 (1222 + 3*id)"
+    },
+    "57": {
+      "pcode": "",
+      "blink": "34",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 34; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01327 = 00 00 34 (1222 + 3*id); simple check slot C0FC (routine 01A23E, config 7011B=30, disabled in this image)"
+    },
+    "58": {
+      "pcode": "P1289",
+      "blink": "65",
+      "name": "Manifold Tune Valve Solenoid Circuit",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1289 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 0132A = 12 89 65 (1222 + 3*id)"
+    },
+    "59": {
+      "pcode": "",
+      "blink": "66",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 66; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 0132D = 00 00 66 (1222 + 3*id)"
+    },
+    "5A": {
+      "pcode": "",
+      "blink": "33",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 33 (the manual uses flash 33 for hex 10), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01330 = 00 00 33 (1222 + 3*id)"
+    },
+    "5B": {
+      "pcode": "",
+      "blink": "33",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 33 (the manual uses flash 33 for hex 10), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01333 = 00 00 33 (1222 + 3*id)"
+    },
+    "5C": {
+      "pcode": "P1490",
+      "blink": "35",
+      "name": "Low Speed Fan Control Relay Circuit",
+      "detail": "An open or shorted condition detected in the control circuit of the low speed radiator fan relay.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01336 = 14 90 35 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 5C"
+    },
+    "5D": {
+      "pcode": "P1489",
+      "blink": "35",
+      "name": "High Speed Fan Relay Circuit",
+      "detail": "An open or shorted condition detected in the control circuit of the high speed radiator fan relay.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01339 = 14 89 35 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 5D"
+    },
+    "5E": {
+      "pcode": "P0182",
+      "blink": "64",
+      "name": "Fuel Temperature Sensor A Circuit Low Input",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0182, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 0133C = 01 82 64 (1222 + 3*id); simple check slot C0E2 (routine 019D6C, config 70F4=B8, disabled in this image, low-side id)"
+    },
+    "5F": {
+      "pcode": "P0183",
+      "blink": "64",
+      "name": "Fuel Temperature Sensor A Circuit High Input",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0183, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 0133F = 01 83 64 (1222 + 3*id); simple check slot C0E2 (routine 019D6C, config 70F4=B8, disabled in this image, high-side id)"
+    },
+    "60": {
+      "pcode": "P1698",
+      "blink": "66",
+      "name": "No CCD Messages From TCM",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1698 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 01342 = 16 98 66 (1222 + 3*id); simple check slot C100 (routine 01A0A4, config 70121=00, disabled in this image)"
+    },
+    "61": {
+      "pcode": "P1695",
+      "blink": "66",
+      "name": "No CCD Messages From Body Control Module",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1695 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 01345 = 16 95 66 (1222 + 3*id)"
+    },
+    "62": {
+      "pcode": "P1292",
+      "blink": "64",
+      "name": "CNG Pressure Sensor Voltage Too High",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1292 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 01348 = 12 92 64 (1222 + 3*id); simple check slot C0E0 (routine 019D96, config 70F1=B8, disabled in this image, high-side id)"
+    },
+    "63": {
+      "pcode": "P1293",
+      "blink": "64",
+      "name": "CNG Pressure Sensor Voltage Too Low",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1293 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 0134B = 12 93 64 (1222 + 3*id); simple check slot C0E0 (routine 019D96, config 70F1=B8, disabled in this image, low-side id)"
+    },
+    "64": {
+      "pcode": "P0176",
+      "blink": "64",
+      "name": "Fuel Composition Sensor Circuit Malfunction",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0176, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 0134E = 01 76 64 (1222 + 3*id)"
+    },
+    "65": {
+      "pcode": "",
+      "blink": "42",
+      "name": "Fuel Pump Relay Control Circuit",
+      "detail": "An open or shorted condition detected in the fuel pump relay control circuit.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01351 = 00 00 42 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 65"
+    },
+    "66": {
+      "pcode": "P0133",
+      "blink": "21",
+      "name": "Right Bank Upstream O2S Slow Response",
+      "detail": "Oxygen sensor response slower than minimum required switching frequency.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01354 = 01 33 21 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 66"
+    },
+    "67": {
+      "pcode": "P0135",
+      "blink": "21",
+      "name": "Right Rear (or just) Upstream O2S Heater Failure",
+      "detail": "Upstream oxygen sensor heating element circuit malfunction.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01357 = 01 35 21 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 67"
+    },
+    "68": {
+      "pcode": "P0139",
+      "blink": "21",
+      "name": "O2 Sensor Circuit Slow Response (Bank 1 Sensor 2)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0139, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 0135A = 01 39 21 (1222 + 3*id)"
+    },
+    "69": {
+      "pcode": "P0141",
+      "blink": "21",
+      "name": "Right Rear (or just) Downstream O2S Heater Failure",
+      "detail": "Oxygen sensor heating element circuit malfunction.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0135D = 01 41 21 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 69"
+    },
+    "6A": {
+      "pcode": "P0300",
+      "blink": "43",
+      "name": "Random/Multiple Cylinder Misfire Detected",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0300, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01360 = 03 00 43 (1222 + 3*id)"
+    },
+    "6B": {
+      "pcode": "P0301",
+      "blink": "43",
+      "name": "Cylinder 1 Misfire Detected",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0301, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01363 = 03 01 43 (1222 + 3*id)"
+    },
+    "6C": {
+      "pcode": "P0302",
+      "blink": "43",
+      "name": "Cylinder 2 Misfire Detected",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0302, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01366 = 03 02 43 (1222 + 3*id)"
+    },
+    "6D": {
+      "pcode": "P0303",
+      "blink": "43",
+      "name": "Cylinder 3 Misfire Detected",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0303, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01369 = 03 03 43 (1222 + 3*id)"
+    },
+    "6E": {
+      "pcode": "P0304",
+      "blink": "43",
+      "name": "Cylinder 4 Misfire Detected",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0304, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 0136C = 03 04 43 (1222 + 3*id)"
+    },
+    "6F": {
+      "pcode": "P0411",
+      "blink": "36",
+      "name": "Secondary Air Injection System Incorrect Flow Detected",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0411, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 0136F = 04 11 36 (1222 + 3*id)"
+    },
+    "70": {
+      "pcode": "P0420",
+      "blink": "72",
+      "name": "Right Rear (or just) Catalyst Efficiency Failure",
+      "detail": "Catalyst efficiency below required level.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01372 = 04 20 72 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 70"
+    },
+    "71": {
+      "pcode": "P0441",
+      "blink": "31",
+      "name": "Evap Purge Flow Monitor Failure",
+      "detail": "Insufficient or excessive vapor flow detected during evaporative emission system operation.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01375 = 04 41 31 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 71"
+    },
+    "72": {
+      "pcode": "P1899",
+      "blink": "45",
+      "name": "Park/Neutral Switch Stuck in Park or in Gear",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1899 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 01378 = 18 99 45 (1222 + 3*id); configured monitor C14E (record 7139=38 72, disabled in this image)"
+    },
+    "73": {
+      "pcode": "",
+      "blink": "65",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 65; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 0137B = 00 00 65 (1222 + 3*id); configured monitor C20E (record 7159=E0 73, disabled in this image)"
+    },
+    "74": {
+      "pcode": "",
+      "blink": "27",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 27 (the manual uses flash 27 for hex 13/14/15/37/38/3D/45/46/4F/50), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 0137E = 00 00 27 (1222 + 3*id)"
+    },
+    "75": {
+      "pcode": "",
+      "blink": "43",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 43 (the manual uses flash 43 for hex 29/2A/2B/4C/4D), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01381 = 00 00 43 (1222 + 3*id)"
+    },
+    "76": {
+      "pcode": "P0172",
+      "blink": "52",
+      "name": "Right Rear (or just) Fuel System Rich",
+      "detail": "A rich air/fuel mixture has been indicated by an abnormally lean correction factor.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01384 = 01 72 52 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 76"
+    },
+    "77": {
+      "pcode": "P0171",
+      "blink": "51",
+      "name": "Right Rear (or just) Fuel System Lean",
+      "detail": "A lean air/fuel mixture has been indicated by an abnormally rich correction factor.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01387 = 01 71 51 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 77"
+    },
+    "78": {
+      "pcode": "P0175",
+      "blink": "52",
+      "name": "Left Front Fuel System Rich",
+      "detail": "A rich air/fuel mixture has been indicated by an abnormally lean correction factor.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0138A = 01 75 52 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 78"
+    },
+    "79": {
+      "pcode": "P0174",
+      "blink": "51",
+      "name": "Left Front Fuel System Lean",
+      "detail": "A lean air/fuel mixture has been indicated by an abnormally rich correction factor.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0138D = 01 74 51 (1222 + 3*id); service manual p. 25-5 (PDF page 928), HEX CODE 79"
+    },
+    "7A": {
+      "pcode": "P0153",
+      "blink": "21",
+      "name": "Left Front Upstream O2 Sensor Slow Response",
+      "detail": "Oxygen sensor response slower than minimum required switching frequency.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01390 = 01 53 21 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 7A"
+    },
+    "7B": {
+      "pcode": "P0159",
+      "blink": "21",
+      "name": "O2 Sensor Circuit Slow Response (Bank 2 Sensor 2)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0159, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01393 = 01 59 21 (1222 + 3*id)"
+    },
+    "7C": {
+      "pcode": "P0155",
+      "blink": "21",
+      "name": "Left Front Upstream O2S Heater Failure",
+      "detail": "Oxygen sensor heater element malfunction.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01396 = 01 55 21 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 7C"
+    },
+    "7D": {
+      "pcode": "P0161",
+      "blink": "21",
+      "name": "Left Front Downstream O2S Heater Failure",
+      "detail": "Oxygen sensor heater element malfunction.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01399 = 01 61 21 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 7D"
+    },
+    "7E": {
+      "pcode": "P0138",
+      "blink": "21",
+      "name": "Right Rear (or just) Downstream O2S Shorted to Voltage",
+      "detail": "Oxygen sensor input voltage maintained above the normal operating range.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0139C = 01 38 21 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 7E; configured monitor C232 (record 715F=38 7E, disabled in this image)"
+    },
+    "7F": {
+      "pcode": "P0158",
+      "blink": "21",
+      "name": "Left Front O2S Shorted to Voltage (downstream, per P0158)",
+      "detail": "Oxygen sensor input voltage maintained above the normal operating range.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0139F = 01 58 21 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 7F; configured monitor C24A (record 7163=38 7F, disabled in this image)"
+    },
+    "80": {
+      "pcode": "P0125",
+      "blink": "17",
+      "name": "Closed Loop Temp Not Reached",
+      "detail": "Engine does not reach 20 deg F within 5 minutes with a vehicle speed signal.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 013A2 = 01 25 17 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 80; configured monitor C12A (record 7133=C0 80, disabled in this image)"
+    },
+    "81": {
+      "pcode": "P0140",
+      "blink": "21",
+      "name": "O2 Sensor Circuit No Activity Detected (Bank 1 Sensor 2)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0140, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 013A5 = 01 40 21 (1222 + 3*id)"
+    },
+    "82": {
+      "pcode": "P0160",
+      "blink": "21",
+      "name": "O2 Sensor Circuit No Activity Detected (Bank 2 Sensor 2)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0160, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 013A8 = 01 60 21 (1222 + 3*id)"
+    },
+    "83": {
+      "pcode": "P1298",
+      "blink": "51",
+      "name": "Lean Operation at Wide Open Throttle",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1298 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 013AB = 12 98 51 (1222 + 3*id)"
+    },
+    "84": {
+      "pcode": "P0121",
+      "blink": "24",
+      "name": "TPS Voltage Does Not Agree With MAP",
+      "detail": "TPS signal does not correlate to MAP sensor.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 013AE = 01 21 24 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 84; configured monitor C136 (record 7135=B8 84, disabled in this image)"
+    },
+    "85": {
+      "pcode": "P1390",
+      "blink": "11",
+      "name": "Timing Belt Skipped 1 Tooth or More",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1390 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 013B1 = 13 90 11 (1222 + 3*id)"
+    },
+    "86": {
+      "pcode": "",
+      "blink": "33",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 33 (the manual uses flash 33 for hex 10), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 013B4 = 00 00 33 (1222 + 3*id)"
+    },
+    "87": {
+      "pcode": "P1296",
+      "blink": "14",
+      "name": "No 5 Volts To MAP Sensor",
+      "detail": "5 volt output to MAP sensor open.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 013B7 = 12 96 14 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 87; simple check slot C0DE (routine 019D4C, config 70EE=99, ENABLED)"
+    },
+    "88": {
+      "pcode": "P1295",
+      "blink": "24",
+      "name": "No 5 Volts to TP Sensor",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1295 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 013BA = 12 95 24 (1222 + 3*id)"
+    },
+    "89": {
+      "pcode": "P0700",
+      "blink": "45",
+      "name": "Transmission Control System Malfunction",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0700, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 013BD = 07 00 45 (1222 + 3*id); simple check slot C0FE (routine 01A08C, config 7011E=00, disabled in this image)"
+    },
+    "8A": {
+      "pcode": "P1294",
+      "blink": "25",
+      "name": "Target Idle Not Reached",
+      "detail": "Actual idle speed does not equal target idle speed.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 013C0 = 12 94 25 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 8A; configured monitor C1A2 (record 7147=E0 8A, disabled in this image)"
+    },
+    "8B": {
+      "pcode": "P1487",
+      "blink": "35",
+      "name": "High Speed Radiator Fan Control Relay Circuit",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1487 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 013C3 = 14 87 35 (1222 + 3*id)"
+    },
+    "8C": {
+      "pcode": "P0400",
+      "blink": "68",
+      "name": "Exhaust Gas Recirculation Flow Malfunction",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0400, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 013C6 = 04 00 68 (1222 + 3*id)"
+    },
+    "8D": {
+      "pcode": "P1756",
+      "blink": "37",
+      "name": "Governor pressure not at target (mid-range)",
+      "detail": "Catalog gives P1756, MIL flash 37; not in the 1997 Viper manual chart (automatic-transmission monitor carried in shared JTEC code).",
+      "confidence": "inferred from routine name",
+      "evidence": "ROM catalog 013C9 = 17 56 37 (1222 + 3*id); recovered/function_catalog.tsv 01B720 monitor_midrange_governor_pressure_P1756; configured monitor C1C6 (record 714D=70 8D, disabled in this image)"
+    },
+    "8E": {
+      "pcode": "P1757",
+      "blink": "37",
+      "name": "Governor pressure above zero when it should be zero",
+      "detail": "Catalog gives P1757, MIL flash 37; not in the 1997 Viper manual chart (automatic-transmission monitor carried in shared JTEC code).",
+      "confidence": "inferred from routine name",
+      "evidence": "ROM catalog 013CC = 17 57 37 (1222 + 3*id); recovered/function_catalog.tsv 01B706 monitor_zero_governor_pressure_P1757; configured monitor C18A (record 7143=30 8E, disabled in this image)"
+    },
+    "8F": {
+      "pcode": "",
+      "blink": "42",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 42 (the manual uses flash 42 for hex 0A/2C/65/95/96/97), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 013CF = 00 00 42 (1222 + 3*id)"
+    },
+    "90": {
+      "pcode": "P0143",
+      "blink": "21",
+      "name": "O2 Sensor Circuit Low Voltage (Bank 1 Sensor 3)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0143, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 013D2 = 01 43 21 (1222 + 3*id)"
+    },
+    "91": {
+      "pcode": "P1299",
+      "blink": "25",
+      "name": "Vacuum Leak Found (IAC Fully Seated)",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1299 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 013D5 = 12 99 25 (1222 + 3*id)"
+    },
+    "92": {
+      "pcode": "P1496",
+      "blink": "71",
+      "name": "5 Volt Supply Output Too Low",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1496 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 013D8 = 14 96 71 (1222 + 3*id)"
+    },
+    "93": {
+      "pcode": "P0144",
+      "blink": "21",
+      "name": "O2 Sensor Circuit High Voltage (Bank 1 Sensor 3)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0144, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 013DB = 01 44 21 (1222 + 3*id)"
+    },
+    "94": {
+      "pcode": "P0740",
+      "blink": "37",
+      "name": "Torque Converter Clutch Circuit Malfunction",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0740, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 013DE = 07 40 37 (1222 + 3*id); configured monitor C1AE (record 7149=D0 94, disabled in this image)"
+    },
+    "95": {
+      "pcode": "",
+      "blink": "42",
+      "name": "Fuel Level Sending Unit Volts Too Low",
+      "detail": "Open circuit between PCM and fuel gauge sending unit.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 013E1 = 00 00 42 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 95; simple check slot C0E6 (routine 019DC0, config 70FA=38, disabled in this image, low-side id)"
+    },
+    "96": {
+      "pcode": "",
+      "blink": "42",
+      "name": "Fuel Level Sending Unit Volts Too High",
+      "detail": "Circuit shorted to voltage between PCM and fuel gauge sending unit.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 013E4 = 00 00 42 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 96; simple check slot C0E6 (routine 019DC0, config 70FA=38, disabled in this image, high-side id)"
+    },
+    "97": {
+      "pcode": "",
+      "blink": "42",
+      "name": "Fuel Level Unit No Change Over Miles",
+      "detail": "No movement of fuel level sender detected.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 013E7 = 00 00 42 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 97; configured monitor C166 (record 713D=20 97, disabled in this image)"
+    },
+    "98": {
+      "pcode": "P0703",
+      "blink": "65",
+      "name": "Torque Converter/Brake Switch B Circuit Malfunction",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0703, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 013EA = 07 03 65 (1222 + 3*id)"
+    },
+    "99": {
+      "pcode": "P1493",
+      "blink": "44",
+      "name": "Ambient/Battery Temp Sensor Volts Too Low",
+      "detail": "Battery temperature sensor input voltage below an acceptable range.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 013ED = 14 93 44 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 99; simple check slot C0E4 (routine 019E0A, config 70F7=39, ENABLED, low-side id)"
+    },
+    "9A": {
+      "pcode": "P1492",
+      "blink": "44",
+      "name": "Ambient/Battery Temp Sensor Volts Too High",
+      "detail": "Battery temperature sensor input voltage above an acceptable range.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 013F0 = 14 92 44 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 9A; simple check slot C0E4 (routine 019E0A, config 70F7=39, ENABLED, high-side id)"
+    },
+    "9B": {
+      "pcode": "P0131",
+      "blink": "21",
+      "name": "Right Rear (or just) Upstream O2S Shorted to Ground",
+      "detail": "O2 sensor voltage too low, tested after cold start.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 013F3 = 01 31 21 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 9B; configured monitor C1D2 (record 714F=19 9B, ENABLED)"
+    },
+    "9C": {
+      "pcode": "P0137",
+      "blink": "21",
+      "name": "Right Rear (or just) Downstream O2S Shorted to Ground",
+      "detail": "O2 sensor voltage too low, tested after cold start.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 013F6 = 01 37 21 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 9C; configured monitor C1DE (record 7151=18 9C, disabled in this image)"
+    },
+    "9D": {
+      "pcode": "P1391",
+      "blink": "11",
+      "name": "Intermittent Loss of CMP or CKP",
+      "detail": "Intermittent loss of either camshaft or crankshaft position sensor.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 013F9 = 13 91 11 (1222 + 3*id); service manual p. 25-6 (PDF page 929), HEX CODE 9D; configured monitor C112 (record 712F=21 9D, ENABLED)"
+    },
+    "9E": {
+      "pcode": "P0411",
+      "blink": "36",
+      "name": "Secondary Air Injection System Incorrect Flow Detected",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0411, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 013FC = 04 11 36 (1222 + 3*id)"
+    },
+    "9F": {
+      "pcode": "P0145",
+      "blink": "21",
+      "name": "O2 Sensor Circuit Slow Response (Bank 1 Sensor 3)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0145, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 013FF = 01 45 21 (1222 + 3*id)"
+    },
+    "A0": {
+      "pcode": "P0442",
+      "blink": "31",
+      "name": "Evaporative Emission Control System Leak Detected (small leak)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0442, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01402 = 04 42 31 (1222 + 3*id)"
+    },
+    "A1": {
+      "pcode": "P0455",
+      "blink": "31",
+      "name": "Evaporative Emission Control System Leak Detected (gross leak)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0455, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01405 = 04 55 31 (1222 + 3*id)"
+    },
+    "A2": {
+      "pcode": "P1291",
+      "blink": "23",
+      "name": "No Temperature Rise Seen From Intake Heaters",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1291 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 01408 = 12 91 23 (1222 + 3*id)"
+    },
+    "A3": {
+      "pcode": "P1399",
+      "blink": "67",
+      "name": "Wait To Start Lamp Circuit",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1399 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 0140B = 13 99 67 (1222 + 3*id)"
+    },
+    "A4": {
+      "pcode": "P0711",
+      "blink": "45",
+      "name": "Transmission Fluid Temperature Sensor Circuit Range/Performance",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0711, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 0140E = 07 11 45 (1222 + 3*id); configured monitor C172 (record 713F=50 A4, disabled in this image)"
+    },
+    "A5": {
+      "pcode": "P0783",
+      "blink": "37",
+      "name": "3-4 Shift Malfunction",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0783, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01411 = 07 83 37 (1222 + 3*id); configured monitor C1BA (record 714B=D0 A5, disabled in this image)"
+    },
+    "A6": {
+      "pcode": "P0720",
+      "blink": "15",
+      "name": "Output Speed Sensor Circuit Malfunction",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0720, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01414 = 07 20 15 (1222 + 3*id); configured monitor C196 (record 7145=30 A6, disabled in this image)"
+    },
+    "A7": {
+      "pcode": "P1764",
+      "blink": "45",
+      "name": "Governor Pressure Sensor Volts Too Low",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1764 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 01417 = 17 64 45 (1222 + 3*id); simple check slot C0EA (routine 019F80, config 70100=B0, disabled in this image, low-side id)"
+    },
+    "A8": {
+      "pcode": "P1763",
+      "blink": "45",
+      "name": "Governor Pressure Sensor Volts Too High",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1763 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 0141A = 17 63 45 (1222 + 3*id); simple check slot C0EA (routine 019F80, config 70100=B0, disabled in this image, high-side id)"
+    },
+    "A9": {
+      "pcode": "P1762",
+      "blink": "45",
+      "name": "Governor pressure sensor offset out of range",
+      "detail": "Catalog gives P1762, MIL flash 45; not in the 1997 Viper manual chart (automatic-transmission monitor carried in shared JTEC code).",
+      "confidence": "inferred from routine name",
+      "evidence": "ROM catalog 0141D = 17 62 45 (1222 + 3*id); recovered/function_catalog.tsv 01B06E monitor_governor_sensor_offset_P1762; configured monitor C17E (record 7141=30 A9, disabled in this image)"
+    },
+    "AA": {
+      "pcode": "",
+      "blink": "37",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 37 (the manual uses flash 37 for hex 22), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01420 = 00 00 37 (1222 + 3*id)"
+    },
+    "AB": {
+      "pcode": "P0748",
+      "blink": "37",
+      "name": "Pressure Control Solenoid Electrical",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0748, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01423 = 07 48 37 (1222 + 3*id); simple check slot C0EC (routine 019F2A, config 70103=B0, disabled in this image)"
+    },
+    "AC": {
+      "pcode": "P0146",
+      "blink": "21",
+      "name": "O2 Sensor Circuit No Activity Detected (Bank 1 Sensor 3)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0146, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01426 = 01 46 21 (1222 + 3*id)"
+    },
+    "AD": {
+      "pcode": "P1765",
+      "blink": "37",
+      "name": "Trans 12 Volt Supply Relay Control Circuit",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1765 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 01429 = 17 65 37 (1222 + 3*id)"
+    },
+    "AE": {
+      "pcode": "P0305",
+      "blink": "43",
+      "name": "Cylinder 5 Misfire Detected",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0305, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 0142C = 03 05 43 (1222 + 3*id)"
+    },
+    "AF": {
+      "pcode": "P0306",
+      "blink": "43",
+      "name": "Cylinder 6 Misfire Detected",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0306, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 0142F = 03 06 43 (1222 + 3*id)"
+    },
+    "B0": {
+      "pcode": "P0307",
+      "blink": "43",
+      "name": "Cylinder 7 Misfire Detected",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0307, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01432 = 03 07 43 (1222 + 3*id)"
+    },
+    "B1": {
+      "pcode": "P0308",
+      "blink": "43",
+      "name": "Cylinder 8 Misfire Detected",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0308, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01435 = 03 08 43 (1222 + 3*id)"
+    },
+    "B2": {
+      "pcode": "P0309",
+      "blink": "43",
+      "name": "Cylinder 9 Misfire Detected",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0309, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01438 = 03 09 43 (1222 + 3*id)"
+    },
+    "B3": {
+      "pcode": "P0310",
+      "blink": "43",
+      "name": "Cylinder 10 Misfire Detected",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0310, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 0143B = 03 10 43 (1222 + 3*id)"
+    },
+    "B4": {
+      "pcode": "P0432",
+      "blink": "72",
+      "name": "Left Front Catalyst Efficiency Failure",
+      "detail": "Catalyst efficiency below required level.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0143E = 04 32 72 (1222 + 3*id); service manual p. 25-7 (PDF page 930), HEX CODE B4"
+    },
+    "B5": {
+      "pcode": "P0151",
+      "blink": "21",
+      "name": "Left Front O2S Shorted to Ground (upstream, per P0151)",
+      "detail": "O2 sensor voltage too low, tested after cold start.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01441 = 01 51 21 (1222 + 3*id); service manual p. 25-7 (PDF page 930), HEX CODE B5; configured monitor C1EA (record 7153=19 B5, ENABLED)"
+    },
+    "B6": {
+      "pcode": "P0157",
+      "blink": "21",
+      "name": "Left Front O2S Shorted to Ground (downstream, per P0157)",
+      "detail": "O2 sensor voltage too low, tested after cold start.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01444 = 01 57 21 (1222 + 3*id); service manual p. 25-7 (PDF page 930), HEX CODE B6; configured monitor C1F6 (record 7155=18 B6, disabled in this image)"
+    },
+    "B7": {
+      "pcode": "P1495",
+      "blink": "31",
+      "name": "Leak Detection Pump Solenoid Circuit",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1495 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 01447 = 14 95 31 (1222 + 3*id); simple check slot C0F4 (routine 01A002, config 7010F=A0, disabled in this image)"
+    },
+    "B8": {
+      "pcode": "P1494",
+      "blink": "31",
+      "name": "Leak Detection Pump Pressure Switch or Mechanical Fault",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1494 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 0144A = 14 94 31 (1222 + 3*id)"
+    },
+    "B9": {
+      "pcode": "P1488",
+      "blink": "71",
+      "name": "Auxiliary 5 Volt Supply Output Too Low",
+      "detail": "Auxiliary 5 volt sensor feed is sensed to be below an acceptable limit.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 0144D = 14 88 71 (1222 + 3*id); service manual p. 25-7 (PDF page 930), HEX CODE B9"
+    },
+    "BA": {
+      "pcode": "P1398",
+      "blink": "11",
+      "name": "Mis-fire Adaptive Numerator at Limit",
+      "detail": "CKP sensor target windows have too much variation.",
+      "confidence": "table-decoded + manual text match",
+      "evidence": "ROM catalog 01450 = 13 98 11 (1222 + 3*id); service manual p. 25-7 (PDF page 930), HEX CODE BA"
+    },
+    "BB": {
+      "pcode": "P1486",
+      "blink": "31",
+      "name": "Evap Leak Monitor Pinched Hose Found",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1486 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 01453 = 14 86 31 (1222 + 3*id)"
+    },
+    "BC": {
+      "pcode": "",
+      "blink": "45",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 45; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01456 = 00 00 45 (1222 + 3*id); simple check slot C0F2 (routine 019ED0, config 7010C=20, disabled in this image)"
+    },
+    "BD": {
+      "pcode": "P0147",
+      "blink": "21",
+      "name": "O2 Sensor Heater Circuit Malfunction (Bank 1 Sensor 3)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0147, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01459 = 01 47 21 (1222 + 3*id)"
+    },
+    "BE": {
+      "pcode": "P1290",
+      "blink": "64",
+      "name": "CNG Fuel System Pressure Too High",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1290 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 0145C = 12 90 64 (1222 + 3*id)"
+    },
+    "C0": {
+      "pcode": "P0133",
+      "blink": "21",
+      "name": "O2 Sensor Circuit Slow Response (Bank 1 Sensor 1)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0133, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01462 = 01 33 21 (1222 + 3*id)"
+    },
+    "C1": {
+      "pcode": "P0153",
+      "blink": "21",
+      "name": "O2 Sensor Circuit Slow Response (Bank 2 Sensor 1)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0153, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01465 = 01 53 21 (1222 + 3*id)"
+    },
+    "C2": {
+      "pcode": "P0139",
+      "blink": "21",
+      "name": "O2 Sensor Circuit Slow Response (Bank 1 Sensor 2)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0139, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01468 = 01 39 21 (1222 + 3*id)"
+    },
+    "C3": {
+      "pcode": "P1484",
+      "blink": "72",
+      "name": "",
+      "detail": "Catalog gives P1484 (manufacturer-specific) with MIL flash 72; no description found in the project sources.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 0146B = 14 84 72 (1222 + 3*id)"
+    },
+    "C4": {
+      "pcode": "",
+      "blink": "37",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 37 (the manual uses flash 37 for hex 22), but this id has no row of its own in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 0146E = 00 00 37 (1222 + 3*id); simple check slot C0F6 (routine 019FDC, config 70112=21, ENABLED)"
+    },
+    "C5": {
+      "pcode": "P1498",
+      "blink": "35",
+      "name": "High Speed Radiator Fan Ground Control Relay Circuit",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1498 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 01471 = 14 98 35 (1222 + 3*id)"
+    },
+    "C6": {
+      "pcode": "P0350",
+      "blink": "43",
+      "name": "Ignition Coil Primary/Secondary Circuit Malfunction",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0350, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01474 = 03 50 43 (1222 + 3*id)"
+    },
+    "C7": {
+      "pcode": "P0756",
+      "blink": "45",
+      "name": "Shift Solenoid B Performance or Stuck Off",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0756, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01477 = 07 56 45 (1222 + 3*id)"
+    },
+    "C8": {
+      "pcode": "P1199",
+      "blink": "22",
+      "name": "",
+      "detail": "Catalog gives P1199 (manufacturer-specific) with MIL flash 22; no description found in the project sources.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 0147A = 11 99 22 (1222 + 3*id)"
+    },
+    "C9": {
+      "pcode": "P1198",
+      "blink": "22",
+      "name": "",
+      "detail": "Catalog gives P1198 (manufacturer-specific) with MIL flash 22; no description found in the project sources.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 0147D = 11 98 22 (1222 + 3*id)"
+    },
+    "CA": {
+      "pcode": "",
+      "blink": "66",
+      "name": "",
+      "detail": "No generic code in the catalog; flashes MIL code 66; no row in the manual chart.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01480 = 00 00 66 (1222 + 3*id)"
+    },
+    "CB": {
+      "pcode": "P0605",
+      "blink": "45",
+      "name": "Internal Control Module Read Only Memory (ROM) Error",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0605, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01483 = 06 05 45 (1222 + 3*id)"
+    },
+    "CC": {
+      "pcode": "P0604",
+      "blink": "45",
+      "name": "Internal Control Module Random Access Memory (RAM) Error",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0604, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 01486 = 06 04 45 (1222 + 3*id)"
+    },
+    "CD": {
+      "pcode": "P1694",
+      "blink": "45",
+      "name": "No CCD Messages Received From PCM (ECM)",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1694 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 01489 = 16 94 45 (1222 + 3*id)"
+    },
+    "D0": {
+      "pcode": "P1744",
+      "blink": "45",
+      "name": "",
+      "detail": "Catalog gives P1744 (manufacturer-specific) with MIL flash 45; no description found in the project sources.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01492 = 17 44 45 (1222 + 3*id)"
+    },
+    "D1": {
+      "pcode": "P1745",
+      "blink": "45",
+      "name": "",
+      "detail": "Catalog gives P1745 (manufacturer-specific) with MIL flash 45; no description found in the project sources.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01495 = 17 45 45 (1222 + 3*id)"
+    },
+    "D2": {
+      "pcode": "P1746",
+      "blink": "45",
+      "name": "",
+      "detail": "Catalog gives P1746 (manufacturer-specific) with MIL flash 45; no description found in the project sources.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 01498 = 17 46 45 (1222 + 3*id)"
+    },
+    "D3": {
+      "pcode": "P1747",
+      "blink": "45",
+      "name": "",
+      "detail": "Catalog gives P1747 (manufacturer-specific) with MIL flash 45; no description found in the project sources.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 0149B = 17 47 45 (1222 + 3*id)"
+    },
+    "D4": {
+      "pcode": "P0405",
+      "blink": "32",
+      "name": "Exhaust Gas Recirculation Sensor A Circuit Low",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0405, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 0149E = 04 05 32 (1222 + 3*id)"
+    },
+    "D5": {
+      "pcode": "P0406",
+      "blink": "32",
+      "name": "Exhaust Gas Recirculation Sensor A Circuit High",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0406, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 014A1 = 04 06 32 (1222 + 3*id)"
+    },
+    "D6": {
+      "pcode": "P1403",
+      "blink": "32",
+      "name": "No 5 Volts to EGR Sensor",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1403 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 014A4 = 14 03 32 (1222 + 3*id)"
+    },
+    "D7": {
+      "pcode": "P0404",
+      "blink": "32",
+      "name": "Exhaust Gas Recirculation Circuit Range/Performance",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0404, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 014A7 = 04 04 32 (1222 + 3*id)"
+    },
+    "D8": {
+      "pcode": "P0356",
+      "blink": "43",
+      "name": "Ignition Coil F Primary/Secondary Circuit Malfunction",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0356, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 014AA = 03 56 43 (1222 + 3*id)"
+    },
+    "D9": {
+      "pcode": "P1288",
+      "blink": "65",
+      "name": "Intake Manifold Short Runner Solenoid Circuit",
+      "detail": "Not listed in the 1997 Viper service manual chart; P1288 is manufacturer-specific and the name is the commonly published Chrysler scan-tool text, setting condition not established.",
+      "confidence": "Chrysler P1 code text from general reference (not in project sources, unverified)",
+      "evidence": "ROM catalog 014AD = 12 88 65 (1222 + 3*id)"
+    },
+    "DA": {
+      "pcode": "P1485",
+      "blink": "36",
+      "name": "",
+      "detail": "Catalog gives P1485 (manufacturer-specific) with MIL flash 36; no description found in the project sources.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 014B0 = 14 85 36 (1222 + 3*id)"
+    },
+    "DB": {
+      "pcode": "P1483",
+      "blink": "72",
+      "name": "",
+      "detail": "Catalog gives P1483 (manufacturer-specific) with MIL flash 72; no description found in the project sources.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 014B3 = 14 83 72 (1222 + 3*id)"
+    },
+    "DC": {
+      "pcode": "P1482",
+      "blink": "72",
+      "name": "",
+      "detail": "Catalog gives P1482 (manufacturer-specific) with MIL flash 72; no description found in the project sources.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 014B6 = 14 82 72 (1222 + 3*id)"
+    },
+    "E0": {
+      "pcode": "P0116",
+      "blink": "22",
+      "name": "Engine Coolant Temperature Circuit Range/Performance Problem",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0116, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 014C2 = 01 16 22 (1222 + 3*id)"
+    },
+    "EA": {
+      "pcode": "P1898",
+      "blink": "45",
+      "name": "",
+      "detail": "Catalog gives P1898 (manufacturer-specific) with MIL flash 45; no description found in the project sources.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 014E0 = 18 98 45 (1222 + 3*id)"
+    },
+    "EB": {
+      "pcode": "P0705",
+      "blink": "45",
+      "name": "Transmission Range Sensor Circuit Malfunction (PRNDL Input)",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0705, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 014E3 = 07 05 45 (1222 + 3*id)"
+    },
+    "EC": {
+      "pcode": "P1748",
+      "blink": "45",
+      "name": "",
+      "detail": "Catalog gives P1748 (manufacturer-specific) with MIL flash 45; no description found in the project sources.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 014E6 = 17 48 45 (1222 + 3*id)"
+    },
+    "ED": {
+      "pcode": "P1749",
+      "blink": "45",
+      "name": "",
+      "detail": "Catalog gives P1749 (manufacturer-specific) with MIL flash 45; no description found in the project sources.",
+      "confidence": "unknown",
+      "evidence": "ROM catalog 014E9 = 17 49 45 (1222 + 3*id)"
+    },
+    "EE": {
+      "pcode": "P0562",
+      "blink": "45",
+      "name": "System Voltage Low",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0562, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 014EC = 05 62 45 (1222 + 3*id)"
+    },
+    "EF": {
+      "pcode": "P0563",
+      "blink": "45",
+      "name": "System Voltage High",
+      "detail": "Not listed in the 1997 Viper service manual chart; name is the SAE J2012 generic text for P0563, setting condition not established.",
+      "confidence": "standard P-code text",
+      "evidence": "ROM catalog 014EF = 05 63 45 (1222 + 3*id)"
+    }
+  }
+}

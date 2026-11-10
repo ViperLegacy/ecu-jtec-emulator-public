@@ -1,0 +1,429 @@
+{
+  "title": "1997 service manual cross-check",
+  "source": {
+    "file": "1997_Dodge_Viper_Service.pdf",
+    "sha256": "fd5eb2aa408e5d09afdcce6b31af0c33d57993403ad358090a7d73785d988c04",
+    "pages": 954
+  },
+  "source_sha256": "82c2832024feae3d5427df4baddbaedcc80cdd0958e3e33155f4b78e1c21c2c0",
+  "scope": "Documented vehicle wiring and behavior, compared with the reference image. This manual does not identify the exact calibration in the dump.",
+  "connectors": [
+    {
+      "name": "C1",
+      "color": "Gray",
+      "pdfPage": 604,
+      "printedPage": "8W-80-33",
+      "pins": [
+        {
+          "cavity": 1,
+          "circuit": "C13",
+          "function": "A/C compressor clutch relay control"
+        },
+        {
+          "cavity": 2,
+          "circuit": "C27",
+          "function": "Radiator fan ON relay control"
+        },
+        {
+          "cavity": 3,
+          "circuit": "K51",
+          "function": "Automatic shutdown (ASD) relay control"
+        },
+        {
+          "cavity": 6,
+          "circuit": "K33",
+          "function": "Skip-shift / 2-3 lockout solenoid control"
+        },
+        {
+          "cavity": 12,
+          "circuit": "A142",
+          "function": "ASD relay output / PCM sense"
+        },
+        {
+          "cavity": 15,
+          "circuit": "G31",
+          "function": "Battery temperature sensor signal"
+        },
+        {
+          "cavity": 16,
+          "circuit": "G12",
+          "function": "Battery lamp signal"
+        },
+        {
+          "cavity": 17,
+          "circuit": "G3",
+          "function": "Malfunction indicator lamp driver (see lamp-path caveat)"
+        },
+        {
+          "cavity": 19,
+          "circuit": "K31",
+          "function": "Fuel pump relay control"
+        },
+        {
+          "cavity": 20,
+          "circuit": "K52",
+          "function": "Duty-cycle evaporative purge solenoid control"
+        },
+        {
+          "cavity": 21,
+          "circuit": "C137",
+          "function": "Radiator fan low/high relay control"
+        },
+        {
+          "cavity": 22,
+          "circuit": "C220",
+          "function": "A/C switch request"
+        },
+        {
+          "cavity": 23,
+          "circuit": "C20",
+          "function": "A/C switch request"
+        },
+        {
+          "cavity": 24,
+          "circuit": "K29",
+          "function": "Stop lamp switch sense"
+        },
+        {
+          "cavity": 27,
+          "circuit": "D21",
+          "function": "SCI transmit (PCM perspective)"
+        },
+        {
+          "cavity": 28,
+          "circuit": "D2",
+          "function": "CCD bus negative"
+        },
+        {
+          "cavity": 29,
+          "circuit": "D20",
+          "function": "SCI receive (PCM perspective)"
+        },
+        {
+          "cavity": 30,
+          "circuit": "D1",
+          "function": "CCD bus positive"
+        },
+        {
+          "cavity": 31,
+          "circuit": "G21",
+          "function": "Tachometer signal"
+        }
+      ]
+    },
+    {
+      "name": "C2",
+      "color": "White",
+      "pdfPage": 605,
+      "printedPage": "8W-80-34",
+      "pins": [
+        {
+          "cavity": 2,
+          "circuit": "K26",
+          "function": "Injector 7 driver"
+        },
+        {
+          "cavity": 3,
+          "circuit": "K5",
+          "function": "Injector 9 driver"
+        },
+        {
+          "cavity": 4,
+          "circuit": "K11",
+          "function": "Injector 1 driver"
+        },
+        {
+          "cavity": 5,
+          "circuit": "K13",
+          "function": "Injector 3 driver"
+        },
+        {
+          "cavity": 6,
+          "circuit": "K38",
+          "function": "Injector 5 driver"
+        },
+        {
+          "cavity": 10,
+          "circuit": "K20",
+          "function": "Generator field driver"
+        },
+        {
+          "cavity": 11,
+          "circuit": "G54",
+          "function": "Upshift lamp driver"
+        },
+        {
+          "cavity": 12,
+          "circuit": "K58",
+          "function": "Injector 6 driver"
+        },
+        {
+          "cavity": 13,
+          "circuit": "K28",
+          "function": "Injector 8 driver"
+        },
+        {
+          "cavity": 14,
+          "circuit": "K8",
+          "function": "Injector 10 driver"
+        },
+        {
+          "cavity": 15,
+          "circuit": "K12",
+          "function": "Injector 2 driver"
+        },
+        {
+          "cavity": 16,
+          "circuit": "K14",
+          "function": "Injector 4 driver"
+        },
+        {
+          "cavity": 21,
+          "circuit": "K136",
+          "function": "Reverse-lockout solenoid control"
+        },
+        {
+          "cavity": 27,
+          "circuit": "G17",
+          "function": "Speedometer signal"
+        },
+        {
+          "cavity": 28,
+          "circuit": "G7",
+          "function": "Vehicle speed sensor signal"
+        },
+        {
+          "cavity": 31,
+          "circuit": "K6",
+          "function": "5 V supply"
+        }
+      ]
+    },
+    {
+      "name": "C3",
+      "color": "Black",
+      "pdfPage": 606,
+      "printedPage": "8W-80-35",
+      "pins": [
+        {
+          "cavity": 1,
+          "circuit": "K32",
+          "function": "Ignition coil 4 driver"
+        },
+        {
+          "cavity": 2,
+          "circuit": "F12",
+          "function": "Fused ignition RUN/START supply"
+        },
+        {
+          "cavity": 3,
+          "circuit": "K18",
+          "function": "Ignition coil 3 driver"
+        },
+        {
+          "cavity": 4,
+          "circuit": "K4",
+          "function": "Sensor ground"
+        },
+        {
+          "cavity": 5,
+          "circuit": "K43",
+          "function": "Ignition coil 5 driver"
+        },
+        {
+          "cavity": 7,
+          "circuit": "K19",
+          "function": "Ignition coil 1 driver"
+        },
+        {
+          "cavity": 8,
+          "circuit": "K24",
+          "function": "Crankshaft position sensor signal"
+        },
+        {
+          "cavity": 9,
+          "circuit": "K17",
+          "function": "Ignition coil 2 driver"
+        },
+        {
+          "cavity": 10,
+          "circuit": "K60",
+          "function": "Idle-air motor 2 driver"
+        },
+        {
+          "cavity": 11,
+          "circuit": "K40",
+          "function": "Idle-air motor 1 driver"
+        },
+        {
+          "cavity": 14,
+          "circuit": "G4",
+          "function": "Fuel level sensor signal"
+        },
+        {
+          "cavity": 15,
+          "circuit": "K21",
+          "function": "Intake air temperature sensor signal"
+        },
+        {
+          "cavity": 16,
+          "circuit": "K2",
+          "function": "Engine coolant temperature sensor signal"
+        },
+        {
+          "cavity": 17,
+          "circuit": "K7",
+          "function": "5 V supply"
+        },
+        {
+          "cavity": 18,
+          "circuit": "K44",
+          "function": "Camshaft position sensor signal"
+        },
+        {
+          "cavity": 19,
+          "circuit": "K39",
+          "function": "Idle-air motor 3 driver"
+        },
+        {
+          "cavity": 20,
+          "circuit": "K59",
+          "function": "Idle-air motor 4 driver"
+        },
+        {
+          "cavity": 22,
+          "circuit": "A14",
+          "function": "Fused battery supply"
+        },
+        {
+          "cavity": 23,
+          "circuit": "K22",
+          "function": "Throttle position sensor signal"
+        },
+        {
+          "cavity": 24,
+          "circuit": "K241",
+          "function": "LEFT upstream oxygen signal; wiring diagram resolves table label error"
+        },
+        {
+          "cavity": 25,
+          "circuit": "K341 coupe / K141 roadster",
+          "function": "RIGHT downstream oxygen signal"
+        },
+        {
+          "cavity": 26,
+          "circuit": "K41",
+          "function": "RIGHT upstream oxygen signal"
+        },
+        {
+          "cavity": 27,
+          "circuit": "K1",
+          "function": "Manifold absolute pressure sensor signal"
+        },
+        {
+          "cavity": 29,
+          "circuit": "K141 coupe / K341 roadster",
+          "function": "LEFT downstream oxygen signal"
+        },
+        {
+          "cavity": 31,
+          "circuit": "Z12",
+          "function": "Ground"
+        },
+        {
+          "cavity": 32,
+          "circuit": "Z12",
+          "function": "Ground"
+        }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "title": "The key-turn display is documented here",
+      "manual": "ON, OFF, ON, OFF, ON within five seconds starts the two-digit trouble-code display. Short pauses separate digits; longer pauses separate codes. Code 12 concerns a recent battery disconnect; 55 ends the display.",
+      "rom": "The recovered serializer and three-event arming path agree with this feature. The complete route from the physical key through the companion electronics is still untraced.",
+      "pages": "25-2 / PDF 925; 25-3 / PDF 926",
+      "topic": "blink-start",
+      "functions": [
+        "018ECA",
+        "013EF4"
+      ]
+    },
+    {
+      "title": "Reverse: power releases the restriction",
+      "manual": "Below 5 mph, the PCM grounds K136 at C2-21, energizing the solenoid and allowing reverse. Above 5 mph it releases the ground, and reverse is restricted. The solenoid receives ignition power on F12.",
+      "rom": "The comparison is strictly greater than 06. Truncation makes raw 07 / filtered word 224 the first set state, nominally 3.5 mph. The shared-port handoff is traced; the manual carries C2-21 through C111-3 and C330-6 to solenoid B. The PCB driver/inversion and reason for the manual's 5 mph specification remain unresolved.",
+      "pages": "8W-30-18 / PDF 447; 8W-30-25 / PDF 454; 21-3 / PDF 810",
+      "topic": "reverse",
+      "functions": [
+        "024ADE",
+        "01A02A",
+        "01A04A"
+      ]
+    },
+    {
+      "title": "Skip shift uses a separate solenoid and lamp",
+      "manual": "K33 at C1-6 controls the solenoid that blocks second and third gear. G54 at C2-11 controls the upshift lamp. The manual describes a warm engine, light throttle, first gear and 12-18 mph, with reset below 2 mph.",
+      "rom": "This image has minimum coolant byte FE at ROM 3DA1, nominally 190 C, so ordinary coolant readings fail the normal entry gate. The manual describes stock vehicle behavior; its warm-engine threshold cannot replace this dump's actual value.",
+      "pages": "8W-30-25 / PDF 454; 14-29 / PDF 746; 21-2 / PDF 809",
+      "topic": "vehicle",
+      "functions": [
+        "0249F4"
+      ]
+    },
+    {
+      "title": "Ten injectors and five ignition coils",
+      "manual": "All ten injector drivers are on C2; five coil drivers are on C3. The injectors operate sequentially. Each coil fires two spark plugs together, with one cylinder on compression and the other on exhaust.",
+      "rom": "This fits the selected ten-cylinder profile and its five paired-cylinder masks. Matching each recovered command or timer channel to an individual harness pin still needs a hardware trace.",
+      "pages": "14-28 / PDF 745; 8W-80-34/35 / PDF 605-606",
+      "topic": "engine",
+      "functions": [
+        "026CFC"
+      ]
+    },
+    {
+      "title": "Four oxygen sensors are shown in the wiring",
+      "manual": "There is an upstream and downstream oxygen sensor on each side. The upstream diagram assigns C3-24 to LEFT and C3-26 to RIGHT. The downstream circuit names change with coupe versus roadster, while right stays C3-25 and left stays C3-29.",
+      "rom": "Four physical sensors do not mean every shared monitor is enabled in this image. Rear-feedback configuration gates remain disabled in the reference bytes. The RAM-channel-to-harness mapping is still provisional.",
+      "pages": "8W-30-13/14 / PDF 442-443; 8W-80-35 / PDF 606",
+      "topic": "feedback",
+      "functions": [
+        "0163C6",
+        "019B54"
+      ]
+    },
+    {
+      "title": "ASD and fuel-pump relays have different controls",
+      "manual": "C1-3 / K51 grounds the ASD relay coil; C1-19 / K31 grounds the fuel-pump relay coil. ASD output A142 supplies engine loads and returns to C1-12 as a sense input.",
+      "rom": "The named diagnostic requests support following the software roles. They do not establish that a request bit is itself a continuously driven relay output.",
+      "pages": "8W-30-21 / PDF 450; 8W-80-33 / PDF 604",
+      "topic": "event-loss",
+      "functions": [
+        "013D90"
+      ]
+    }
+  ],
+  "caveats": [
+    {
+      "title": "A repeated upstream label is a table error",
+      "body": "The C3 table calls both cavities 24 and 26 right upstream. Diagram 8W-30-13 explicitly routes LEFT upstream K241 to cavity 24 and RIGHT upstream K41 to cavity 26. The table above follows that diagram and flags the correction."
+    },
+    {
+      "title": "Duplicate downstream rows are body-style alternatives",
+      "body": "The footnotes on 8W-80-35 mean one asterisk = coupe, two = roadster. K141 is TN/WT; K341 is PK/WT. Diagram 8W-30-14 confirms these alternatives. They are not extra pins or extra oxygen sensors."
+    },
+    {
+      "title": "The skip-shift prose disagrees with itself",
+      "body": "Page 14-29 prints 608 RPM; 21-2 prints 600 RPM. Page 14-29 gives 0.68 V above closed throttle for the lamp but 0.068 V for the solenoid, both described as 23 percent. Keep these printed values separate from the actual recovered calibration; they are not a reliable conversion rule."
+    },
+    {
+      "title": "The lamp path still needs tracing",
+      "body": "The connector table lists C1-17 / G3 as a malfunction-lamp driver. Pages 14-28 and 25-1 also describe a CCD message to the instrument cluster. This does not establish the serializer's final physical output route or timing."
+    },
+    {
+      "title": "Connector names vary between sections",
+      "body": "The circuit prose uses A, B and C cavity prefixes that align with black C3, white C2 and gray C1 in these pin tables. For example B21 matches C2-21 and C6 matches C1-6. Read connector and cavity together; the prose label C3 for ASD is not black connector C3 pin 3."
+    }
+  ]
+}

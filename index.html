@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="/shim.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>68HC16 emulator</title>
+<style>
+:root {
+  --bg: #f4f2ed; --panel: #fffdf8; --line: #d9d4c8; --ink: #1d1b17; --dim: #7a7466;
+  --accent: #b3261e; --ok: #1f7a3d; --warn: #a8640a; --sel: #efe9da;
+  --code: #9fb4c7; --data: #d8b46a; --fill: #e7e2d6; --hit: #1f9d4c;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14151a; --panel: #1c1e25; --line: #30333d; --ink: #e6e3da; --dim: #8a8c96;
+    --accent: #ff6b5e; --ok: #56d483; --warn: #f0b354; --sel: #272a34;
+    --code: #3d5670; --data: #6e5a2c; --fill: #22242c; --hit: #4be08a;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 13px/1.4 system-ui, "Segoe UI", sans-serif; }
+header { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; padding: 10px 16px;
+  border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 2; }
+h1 { font-size: 15px; margin: 0; letter-spacing: .02em; }
+h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); margin: 0 0 8px; font-weight: 600; }
+.id { color: var(--dim); font-family: var(--mono); font-size: 12px; }
+.id b { color: var(--ink); font-weight: 600; }
+.controls { display: flex; gap: 6px; margin-left: auto; align-items: center; }
+button, input[type=text] { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 4px; padding: 4px 10px; }
+button { cursor: pointer; }
+button:hover { border-color: var(--dim); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+button.primary { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+input[type=text] { font-family: var(--mono); }
+.status { font-family: var(--mono); font-size: 12px; padding: 3px 8px; border-radius: 10px; border: 1px solid var(--line); }
+.status.run { color: var(--ok); border-color: var(--ok); }
+.status.stop { color: var(--warn); border-color: var(--warn); }
+main { display: grid; grid-template-columns: 210px minmax(340px, 1fr) minmax(430px, 1.15fr); gap: 12px; padding: 12px 16px; align-items: start; }
+@media (max-width: 1100px) { main { grid-template-columns: 1fr; } }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px; min-width: 0; }
+.col { display: grid; gap: 12px; min-width: 0; }
+.mono, table, pre { font-family: var(--mono); font-size: 12px; }
+table { border-collapse: collapse; width: 100%; }
+td { padding: 1px 6px 1px 0; white-space: nowrap; }
+td.k { color: var(--dim); width: 1%; }
+.flags span { display: inline-block; min-width: 26px; text-align: center; margin: 0 3px 3px 0; padding: 1px 4px;
+  border: 1px solid var(--line); border-radius: 3px; font-family: var(--mono); font-size: 11px; color: var(--dim); }
+.flags span.on { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+.listing { overflow-x: auto; }
+.listing tr { cursor: pointer; }
+.listing tr:hover { background: var(--sel); }
+.listing tr.pc { background: var(--sel); box-shadow: inset 3px 0 0 var(--accent); }
+.listing td.bp { width: 14px; color: var(--accent); padding-left: 6px; }
+.listing td.b { color: var(--dim); }
+.listing td.f { color: var(--dim); max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+.row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+.row label { color: var(--dim); }
+#map { width: 100%; image-rendering: pixelated; border: 1px solid var(--line); display: block; cursor: crosshair; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; color: var(--dim); font-size: 11px; margin-top: 6px; }
+.legend i { display: inline-block; width: 10px; height: 10px; margin-right: 4px; vertical-align: -1px; border: 1px solid var(--line); }
+#console { height: 170px; overflow-y: auto; border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; background: var(--bg); }
+#console .tx { color: var(--dim); }
+#console .rx b { color: var(--ok); font-weight: 600; }
+#console .bad { color: var(--accent); }
+#mem { margin: 0; overflow-x: auto; line-height: 1.5; }
+#mem .a { color: var(--dim); }
+#mem .chg { color: var(--accent); font-weight: 600; }
+#mem .asc { color: var(--dim); }
+.note { color: var(--dim); font-size: 11px; margin: 8px 0 0; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-family: var(--mono); font-size: 12px; }
+.kv span:nth-child(odd) { color: var(--dim); }
+.alert { color: var(--accent); }
+.an { display: grid; grid-template-columns: 26px 1fr 40px; gap: 4px; align-items: center; font-family: var(--mono); font-size: 11px; }
+.an input[type=range] { width: 100%; min-width: 0; margin: 0; accent-color: var(--accent); }
+.an span:first-child { color: var(--dim); }
+.anrow { margin-bottom: 3px; }
+.anname { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.anhead { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); margin: 8px 0 4px; }
+.an { grid-template-columns: 34px 1fr 40px; }
+.pillrow { display: flex; gap: 4px; margin: 6px 0 10px; }
+.pillrow button, .bits button { font-size: 10px; padding: 1px 6px; }
+.port { display: grid; grid-template-columns: 22px 1fr; gap: 4px; align-items: center; margin-bottom: 3px; font-family: var(--mono); font-size: 11px; }
+.port > span { color: var(--dim); }
+.bits { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; }
+.bits button { padding: 1px 0; font-family: var(--mono); border-radius: 3px; }
+.bits button.hi { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+.bits button:disabled { opacity: .45; cursor: default; border-style: dashed; }
+#spiLog td { padding-right: 12px; }
+#spiRules { width: 100%; min-height: 54px; font: 12px var(--mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px; resize: vertical; }
+.side table, .side .kv, .side .flags span { font-size: 11px; }
+.side td { padding: 0 6px 0 0; line-height: 1.35; }
+.side section { padding: 10px; }
+.side .note, .side label { font-size: 11px; }
+#notice { margin: 12px 16px 0; padding: 8px 12px; border: 1px solid var(--warn); border-radius: 6px; color: var(--warn); background: var(--panel); }
+#notice:empty { display: none; }
+.tablist { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin: -4px 0 12px; }
+.tablist button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 6px 14px; color: var(--dim); font-weight: 600; }
+.tablist button[aria-selected=true] { color: var(--ink); border-bottom-color: var(--accent); }
+.cmdgrid { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 12px; align-items: start; }
+@media (max-width: 700px) { .cmdgrid { grid-template-columns: 1fr; } }
+#cmdDetail { max-height: 460px; overflow-y: auto; padding-right: 4px; }
+#pane-inputs #analog { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 18px; }
+#pane-inputs .anhead { grid-column: 1 / -1; }
+#pane-inputs #ports { max-width: 340px; }
+#cmdList { max-height: 420px; overflow-y: auto; margin: 0; padding: 0; list-style: none; border: 1px solid var(--line); border-radius: 4px; }
+#cmdList li { display: flex; gap: 8px; padding: 5px 8px; cursor: pointer; border-bottom: 1px solid var(--line); align-items: baseline; }
+#cmdList li:last-child { border-bottom: 0; }
+#cmdList li:hover, #cmdList li.sel { background: var(--sel); }
+#cmdList li.sel { box-shadow: inset 3px 0 0 var(--accent); }
+#cmdList .cid { font-family: var(--mono); font-weight: 600; min-width: 22px; }
+#cmdList .tag { display: none; }
+#cmdList li { font-size: 12px; }
+.tag { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; padding: 1px 6px; border-radius: 8px; border: 1px solid var(--line); color: var(--dim); white-space: nowrap; }
+.tag.w { color: var(--accent); border-color: var(--accent); }
+.tag.m { color: var(--warn); border-color: var(--warn); }
+#cmdDetail h3 { margin: 0 0 4px; font-size: 16px; }
+#cmdDetail h4 { margin: 14px 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); }
+#cmdDetail p { margin: 0 0 6px; max-width: 78ch; }
+#cmdDetail ul { margin: 0; padding-left: 18px; max-width: 78ch; }
+#cmdDetail li { margin-bottom: 3px; }
+.argrow { display: grid; grid-template-columns: 96px 70px 1fr; gap: 8px; align-items: baseline; margin-bottom: 4px; }
+.argrow .hint { color: var(--dim); }
+.ex { display: flex; gap: 8px; align-items: baseline; margin-bottom: 4px; flex-wrap: wrap; }
+.ex .obs { color: var(--dim); font-family: var(--mono); font-size: 12px; }
+details.rules summary { cursor: pointer; color: var(--dim); }
+details.rules ul { margin: 6px 0 0; padding-left: 18px; max-width: 90ch; }
+</style>
+<link rel="stylesheet" href="/driver.css">
+</head>
+<body>
+<div id="bootOverlay" role="status"><span>Starting the emulator…</span>
+<p>The 1997 Viper JTEC engine controller's own firmware, running in your browser.</p></div>
+<style>
+#bootOverlay { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 8px; background: var(--bg); color: var(--ink); font: 15px system-ui, sans-serif; }
+#bootOverlay p { color: var(--dim); font-size: 13px; margin: 0; }
+#bootOverlay.err span { color: var(--accent); }
+</style>
+
+<header>
+  <h1 title="Motorola MC68HC16 (CPU16), the JTEC main processor">68HC16 emulator</h1>
+  <div class="id" id="ident">loading image…</div>
+  <div class="controls">
+    <span class="modes" role="group" aria-label="View">
+      <button id="modeDriver" aria-pressed="false" title="Gauges, fault codes, outputs, maps and connectors">Driver</button>
+      <button id="modeEngineer" aria-pressed="true" title="Disassembly, registers, memory and the raw SCI port">Engineer</button>
+    </span>
+    <button id="openBtn" title="Load a different 262,144-byte JTEC main-flash dump">Open dump…</button>
+    <input type="file" id="openFile" hidden aria-label="Flash dump file">
+    <span class="status" id="status">…</span>
+    <button id="runBtn" class="primary">Pause</button>
+    <button id="stepBtn" title="Execute one instruction">Step</button>
+    <button id="resetBtn" title="Reload the image and start from the reset vector">Reset</button>
+  </div>
+</header>
+<div id="notice" role="status"></div>
+<div id="driver" hidden></div>
+<main>
+  <div class="col side">
+    <section>
+      <h2>Machine</h2>
+      <div class="kv" id="machine"></div>
+      <div class="row" style="margin:10px 0 0">
+        <label><input type="checkbox" id="ign" checked> Ignition on</label>
+      </div>
+      <p class="note">Ignition is port F bit 0. Off sends the firmware to its save-and-wait-for-power-loss loop.</p>
+    </section>
+    <section>
+      <h2>CPU</h2>
+      <table id="regs"></table>
+      <div class="flags" id="flags" style="margin-top:8px"></div>
+      <p class="note" id="where"></p>
+    </section>
+    <section>
+      <h2>Stack</h2>
+      <table id="stack"></table>
+    </section>
+  </div>
+
+  <div class="col">
+    <section>
+      <h2>Flash image</h2>
+      <canvas id="map" width="512" height="128" aria-label="Map of the 256 KB flash image"></canvas>
+      <div class="legend">
+        <span><i style="background:var(--code)"></i>code</span>
+        <span><i style="background:var(--data)"></i>data</span>
+        <span><i style="background:var(--fill)"></i>erased</span>
+        <span><i style="background:var(--hit)"></i>executed</span>
+        <span><i style="background:var(--accent)"></i>PC</span>
+        <span id="mapHover" class="mono"></span>
+        <button id="clearCov" style="margin-left:auto">Clear executed</button>
+      </div>
+      <p class="note">Click the map to open that address below. Clear the executed marks, send a request, and the code that handled it lights up.</p>
+    </section>
+    <section>
+      <h2>Disassembly</h2>
+      <div class="row">
+        <label><input type="checkbox" id="follow" checked> Follow PC</label>
+        <input type="text" id="listAddr" size="8" placeholder="address" aria-label="Listing address">
+        <button id="listGo">Go</button>
+        <span class="note" style="margin:0">Click a row to toggle a breakpoint.</span>
+      </div>
+      <div class="listing"><table id="listing"></table></div>
+    </section>
+  </div>
+
+  <div class="col">
+    <section class="tabs">
+      <div class="tablist" role="tablist" aria-label="Right panel">
+        <button role="tab" id="tab-sci" aria-controls="pane-sci" aria-selected="true">SCI</button>
+        <button role="tab" id="tab-inputs" aria-controls="pane-inputs" aria-selected="false" tabindex="-1">Inputs</button>
+        <button role="tab" id="tab-memory" aria-controls="pane-memory" aria-selected="false" tabindex="-1">Memory</button>
+      </div>
+      <div role="tabpanel" id="pane-sci" aria-labelledby="tab-sci">
+        <h2>Diagnostic port</h2>
+      <div id="console" class="mono" aria-live="polite"></div>
+      <div class="row" style="margin:8px 0 0">
+        <input type="text" id="sciHex" size="22" placeholder="hex bytes, e.g. 26 00 C0 00" aria-label="Bytes to send">
+        <button id="sciSend" class="primary">Send</button>
+      </div>
+      <div class="row" style="margin:8px 0 0">
+        <button data-hex="10" title="Stored fault codes">10 faults</button>
+        <button data-hex="2A01" title="Identification byte 01">2A 01</button>
+        <input type="text" id="rdAddr" size="7" value="00C000" aria-label="Address to read">
+        <button id="rdBtn" title="Service 26: read one byte of main-CPU memory">26 read</button>
+      </div>
+      <p class="note">Bytes go out one at a time, each after the previous echo, as on the real link. Replies that depend on the co-processor or EEPROM are not meaningful.</p>
+    
+        <h2 style="margin-top:14px">Commands</h2>
+        <div class="cmdgrid">
+          <div class="listpane">
+            <div class="row"><input type="text" id="cmdFilter" placeholder="filter" style="flex:1;min-width:0" aria-label="Filter commands"></div>
+            <ul id="cmdList" role="listbox" aria-label="SCI commands"></ul>
+            <p class="note" id="cmdSource"></p>
+          </div>
+          <div id="cmdDetail"><p class="note" style="margin:0">Pick a command on the left.</p></div>
+        </div>
+      </div>
+      <div role="tabpanel" id="pane-inputs" aria-labelledby="tab-inputs" hidden>
+        <h2>Analog and port pins</h2>
+      <div id="analog"></div>
+      <div class="pillrow"><button data-an="0">all 0 V</button><button data-an="512">2.5 V</button><button data-an="1023">5 V</button></div>
+      <div id="ports"></div>
+      <p class="note">Analog names are what the firmware does with each input, found by experiment (see INPUT_MAP.md); the multiplexer is inferred. Port rows show bits 7…0; dashed bits are outputs. Hover a bit for what it is; question marks are inferences. Details in INPUT_MAP.md. F0 is ignition; F5 low means the serial peripheral is ready.</p>
+    
+        <h2 style="margin-top:14px">Serial peripherals (SPI)</h2>
+      <table id="spiLog"></table>
+      <p class="note">Most recent transfers, newest last. Select 1E and 1D are the two external devices, one of them the co-processor.</p>
+      <h2 style="margin-top:10px">Scripted replies</h2>
+      <textarea id="spiRules" spellcheck="false" placeholder="1E 0A -> 55     after select 1E receives 0A, its next reply is 55&#10;1D * -> 00      select 1D always replies 00" aria-label="Scripted SPI replies"></textarea>
+      <div class="row" style="margin:6px 0 0"><button id="spiApply">Apply</button><span class="note" id="spiMsg" style="margin:0"></span></div>
+      <p class="note">One rule per line, hex, first match wins. Anything unmatched keeps the stand-in (two's complement of the previous byte), which startup needs. A rule that breaks that handshake makes the firmware restart forever.</p>
+    
+      </div>
+      <div role="tabpanel" id="pane-memory" aria-labelledby="tab-memory" hidden>
+      <div class="row">
+        <input type="text" id="memAddr" size="8" value="F8000" aria-label="Memory address">
+        <button id="memGo">Go</button>
+        <button data-mem="00000">ROM</button>
+        <button data-mem="F8000">RAM</button>
+        <button data-mem="F8800">Retained</button>
+        <button data-mem="FFC00">QSM</button>
+        <button id="memPrev" aria-label="Previous page">◀</button>
+        <button id="memNext" aria-label="Next page">▶</button>
+      </div>
+      <pre id="mem"></pre>
+      <div class="row" style="margin:8px 0 0">
+        <label for="pokeAddr">Write</label>
+        <input type="text" id="pokeAddr" size="7" placeholder="address" aria-label="Address to write">
+        <input type="text" id="pokeHex" size="16" placeholder="hex bytes" aria-label="Bytes to write">
+        <button id="pokeBtn">Write</button>
+      </div>
+      <p class="note">Viewing a register shows its stored latch, with no side effects. Writing goes through the bus: RAM changes directly, a register reacts as if the firmware had written it, flash is refused.</p>
+    
+      </div>
+    </section>
+  </div>
+</main>
+<script src="/driver.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const hexBytes = h => (h.match(/../g) || []).join(' ').toUpperCase();
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const rgb = c => { const x = document.createElement('canvas').getContext('2d'); x.fillStyle = c; x.fillRect(0,0,1,1); return x.getImageData(0,0,1,1).data; };
+
+let ident = null, classes = null, covBits = null, state = null;
+let listAt = null, memAt = 0xF8000, lastMem = null, lastMemAddr = null, lastConsole = '';
+
+async function api(path) { return (await fetch(path)).json(); }
+async function cmd(body) {
+  const r = await fetch('/api/cmd', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+  if (!r.ok) alert((await r.json()).error);
+  poll();
+}
+
+function drawMap() {
+  if (!classes) return;
+  const cv = $('map'), ctx = cv.getContext('2d'), img = ctx.createImageData(cv.width, cv.height);
+  const pal = [rgb(css('--fill')), rgb(css('--data')), rgb(css('--code'))], hit = rgb(css('--hit')), pcc = rgb(css('--accent'));
+  for (let i = 0; i < classes.length; i++) {
+    let c = pal[classes[i]];
+    if (covBits && (covBits[i >> 3] >> (i & 7)) & 1) c = hit;
+    img.data.set([c[0], c[1], c[2], 255], i * 4);
+  }
+  if (state) {
+    const pc = parseInt(state.pc, 16);
+    if (pc < ident.size) {
+      const p = Math.floor(pc / ident.map.bytes_per_pixel), x = p % cv.width, y = Math.floor(p / cv.width);
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+        const xx = x + dx, yy = y + dy;
+        if (xx >= 0 && yy >= 0 && xx < cv.width && yy < cv.height) img.data.set([pcc[0], pcc[1], pcc[2], 255], (yy * cv.width + xx) * 4);
+      }
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+function mapAddr(ev) {
+  const cv = $('map'), r = cv.getBoundingClientRect();
+  const x = Math.min(cv.width - 1, Math.max(0, Math.floor((ev.clientX - r.left) / r.width * cv.width)));
+  const y = Math.min(cv.height - 1, Math.max(0, Math.floor((ev.clientY - r.top) / r.height * cv.height)));
+  return (y * cv.width + x) * ident.map.bytes_per_pixel;
+}
+
+function render(s) {
+  // Landing on a breakpoint (or any stop) while the listing is pinned elsewhere: show the PC.
+  if (state && state.running && !s.running && !$('follow').checked) { $('follow').checked = true; setTimeout(poll, 0); }
+  state = s;
+  const st = $('status');
+  st.textContent = s.running ? 'running · ' + (s.rate / 1e6).toFixed(2) + ' M instr/s' : (s.stop_reason || 'stopped');
+  st.className = 'status ' + (s.running ? 'run' : 'stop');
+  $('runBtn').textContent = s.running ? 'Pause' : 'Run';
+  $('stepBtn').disabled = s.running;
+
+  $('regs').innerHTML = '<tr><td class="k">PC</td><td>' + s.pc + '</td></tr>' +
+    Object.entries(s.regs).map(([k, v]) => '<tr><td class="k">' + k + '</td><td>' + v + '</td></tr>').join('');
+  $('flags').innerHTML = Object.entries(s.flags).map(([k, v]) => '<span class="' + (v ? 'on' : '') + '" title="' + k + (v ? ' set' : ' clear') + '">' + k + '</span>').join('') +
+    '<span title="Interrupt priority mask">IP' + s.ip + '</span>';
+  $('where').textContent = s.function ? 'in ' + s.function : '';
+  $('stack').innerHTML = s.stack.map(r => '<tr><td class="k">' + r[0] + '</td><td>' + r[1] + '</td></tr>').join('') || '<tr><td class="k">empty</td></tr>';
+
+  const irq = Object.entries(s.irq).map(([k, v]) => k + ' ' + v.toLocaleString()).join(', ') || 'none';
+  $('machine').innerHTML = [
+    ['instructions', s.icount.toLocaleString()],
+    ['interrupts', irq],
+    ['SCI baud', s.baud],
+    ['SPI transfers', s.qspi.toLocaleString()],
+    ['code executed', s.covered.toLocaleString() + ' addresses'],
+    ['watchdog resets', s.watchdog_resets || 0],
+    ['writes to ROM', s.rom_writes ? '<span class="alert">' + s.rom_writes + '</span>' : '0'],
+    ['unmapped access', s.unmapped ? '<span class="alert">' + s.unmapped + '</span>' : '0'],
+  ].map(([k, v]) => '<span>' + k + '</span><span>' + v + '</span>').join('');
+  if (document.activeElement !== $('ign')) $('ign').checked = s.ignition;
+
+  renderInputs(s);
+  if (window.renderDriver) renderDriver(s);
+  const bps = new Set(s.breakpoints);
+  $('listing').innerHTML = s.listing.map(r =>
+    '<tr data-a="' + r.a + '" class="' + (r.a === s.pc ? 'pc' : '') + '"><td class="bp">' + (bps.has(r.a) ? '●' : '') + '</td><td>' + r.a +
+    '</td><td class="b">' + r.b + '</td><td>' + esc(r.t) + '</td><td class="f" title="' + esc(r.f) + '">' + esc(r.f) + '</td></tr>').join('');
+
+  const html = s.sci.map(r => {
+    const tx = hexBytes(r.tx), n = r.tx.length;
+    if (!n) return '<div class="rx">← <b>' + hexBytes(r.rx) + '</b> <span class="tx">(unsolicited)</span></div>';
+    const echo = r.rx.slice(0, n), reply = r.rx.slice(n);
+    let line = '<div class="tx">→ ' + tx + '</div>';
+    if (r.status === 'no echo') line += '<div class="bad">← no echo after ' + (r.rx.length / 2) + ' of ' + (n / 2) + ' bytes</div>';
+    else if (r.rx.length < n) line += '<div class="tx">← …</div>';
+    else line += '<div class="rx">← ' + (echo === r.tx ? '<span class="tx">echo ok</span>' : '<span class="bad">echo ' + hexBytes(echo) + '</span>') +
+      (reply ? ' · reply <b>' + hexBytes(reply) + '</b>' : ' <span class="tx">· no data</span>') + '</div>';
+    return line;
+  }).join('');
+  if (html !== lastConsole) { const c = $('console'); c.innerHTML = html || '<span class="tx">No traffic yet. Try “10 faults”.</span>'; c.scrollTop = c.scrollHeight; lastConsole = html; }
+  drawMap();
+}
+
+let inputsBuilt = false;
+function renderInputs(s) {
+  if (!inputsBuilt && ident) {
+    const sig = ident.analog_signals, rows = [];
+    const row = (set, ch) => '<div class="anrow"><div class="anname" title="' + esc(sig[set][ch]) + '">' + esc(sig[set][ch]) + '</div><div class="an"><span>AN' + ch + (ch >= 2 ? set : '') +
+      '</span><input type="range" min="0" max="1023" id="an' + set + ch + '" aria-label="' + esc(sig[set][ch]) + '"><span id="anv' + set + ch + '"></span></div></div>';
+    for (let ch = 0; ch < 8; ch++) rows.push(row('a', ch));
+    rows.push('<div class="anhead">Second signal on AN2–7 (multiplexed)</div>');
+    for (let ch = 2; ch < 8; ch++) rows.push(row('b', ch));
+    $('analog').innerHTML = rows.join('');
+    $('analog').querySelectorAll('input[type=range]').forEach(el => {
+      const set = el.id[2], ch = +el.id.slice(3);
+      el.oninput = () => { $('anv' + set + ch).textContent = (el.value * 5 / 1023).toFixed(2) + 'V'; cmdQuiet({cmd: 'analog', set, ch, value: +el.value}); };
+    });
+    inputsBuilt = true;
+  }
+  if (inputsBuilt) for (const [set, vals] of [['a', s.analog], ['b', s.analog_b]]) vals.forEach((v, ch) => {
+    const el = $('an' + set + ch);
+    if (el && document.activeElement !== el) { el.value = v; $('anv' + set + ch).textContent = (v * 5 / 1023).toFixed(2) + 'V'; }
+  });
+  $('ports').innerHTML = Object.entries(s.ports).map(([name, p]) => {
+    let cells = '';
+    for (let b = 7; b >= 0; b--) {
+      const out = (p.ddr >> b) & 1, level = ((out ? p.latch : p.pins) >> b) & 1;
+      cells += '<button data-port="' + name + '" data-bit="' + b + '" data-on="' + (level ? 0 : 1) + '" class="' + (level ? 'hi' : '') + '"' + (out ? ' disabled' : '') +
+        ' title="' + name + b + ': ' + esc((ident && ident.pin_notes[name] || [])[b] || '') + ' | ' + (out ? 'output' : 'input') + ', ' + (level ? 'high' : 'low') + '">' + level + '</button>';
+    }
+    return '<div class="port"><span>' + name + '</span><div class="bits">' + cells + '</div></div>';
+  }).join('');
+  $('spiLog').innerHTML = '<tr><td class="k">select</td><td class="k">sent</td><td class="k">reply</td><td class="k">from</td></tr>' +
+    (s.spi.map(r => '<tr><td>' + r[2] + '</td><td>' + r[3] + '</td><td>' + r[4] + '</td><td class="k">' + r[1] + '</td></tr>').join('') || '<tr><td class="k" colspan="4">none yet</td></tr>');
+  if (document.activeElement !== $('spiRules') && $('spiRules').value === '' && s.spi_rules) $('spiRules').value = s.spi_rules;
+  $('spiMsg').innerHTML = s.spi_rule_errors.length ? '<span class="alert">' + esc(s.spi_rule_errors.join('; ')) + ' (not applied)</span>' : '';
+}
+let quietTimer = null, quietBody = null;
+function cmdQuiet(body) {            // coalesce slider drags into a few requests
+  quietBody = body;
+  if (quietTimer) return;
+  quietTimer = setTimeout(() => { quietTimer = null; fetch('/api/cmd', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(quietBody)}); }, 80);
+}
+
+function renderMem(d) {
+  const base = parseInt(d.addr, 16), b = d.hex.match(/../g) || [];
+  const same = lastMem && lastMemAddr === base;
+  let out = '';
+  for (let i = 0; i < b.length; i += 16) {
+    let hx = '', asc = '';
+    for (let j = i; j < Math.min(i + 16, b.length); j++) {
+      const chg = same && lastMem[j] !== b[j];
+      hx += (chg ? '<span class="chg">' + b[j].toUpperCase() + '</span>' : b[j].toUpperCase()) + (j % 16 === 7 ? '  ' : ' ');
+      const v = parseInt(b[j], 16); asc += v >= 32 && v < 127 ? esc(String.fromCharCode(v)) : '.';
+    }
+    out += '<span class="a">' + (base + i).toString(16).toUpperCase().padStart(5, '0') + '</span>  ' + hx + ' <span class="asc">' + asc + '</span>\n';
+  }
+  $('mem').innerHTML = out; lastMem = b; lastMemAddr = base;
+}
+
+async function poll() {
+  try {
+    const s = await api('/api/state' + (listAt !== null && !$('follow').checked ? '?list=' + listAt.toString(16) : ''));
+    render(s);
+    renderMem(await api('/api/mem?addr=' + memAt.toString(16) + '&len=256'));
+  } catch (e) { $('status').textContent = 'server not responding'; $('status').className = 'status stop'; }
+}
+async function pollCov() {
+  try { const c = await api('/api/coverage'); covBits = Uint8Array.from(atob(c.bits), ch => ch.charCodeAt(0)); drawMap(); } catch (e) {}
+}
+
+function setMem(a) { memAt = Math.max(0, Math.min(0xFFF00, a)) & ~0xF; $('memAddr').value = memAt.toString(16).toUpperCase().padStart(5, '0'); lastMem = null; poll(); }
+function setList(a) { listAt = a; $('follow').checked = false; $('listAddr').value = a.toString(16).toUpperCase().padStart(5, '0'); poll(); }
+function sendHex(h) {
+  h = h.replace(/[\s,]|0x/gi, '');
+  if (!h || h.length % 2 || /[^0-9a-f]/i.test(h)) { alert('Enter whole bytes in hex, for example 26 00 C0 00'); return; }
+  cmd({cmd: 'sci', hex: h});
+}
+
+document.querySelectorAll('button[data-an]').forEach(b => b.onclick = () => cmd({cmd: 'analog', set: 'both', ch: 'all', value: +b.dataset.an}));
+$('ports').onclick = e => { const b = e.target.closest('button[data-port]'); if (b && !b.disabled) cmd({cmd: 'pin', port: b.dataset.port, bit: +b.dataset.bit, on: b.dataset.on === '1'}); };
+$('spiApply').onclick = () => cmd({cmd: 'spi_rules', text: $('spiRules').value});
+$('pokeBtn').onclick = () => {
+  const a = $('pokeAddr').value.trim(), h = $('pokeHex').value.replace(/[\s,]|0x/gi, '');
+  if (!/^[0-9a-f]{1,5}$/i.test(a) || !h || h.length % 2 || /[^0-9a-f]/i.test(h)) return alert('Enter a hex address and whole hex bytes, for example F8100 and 01 02');
+  cmd({cmd: 'poke', addr: a, hex: h}).then(() => setMem(parseInt(a, 16)));
+};
+$('runBtn').onclick = () => cmd({cmd: state && state.running ? 'pause' : 'run'});
+// Stepping is about where the PC goes next, so un-pin the listing.
+$('stepBtn').onclick = () => { $('follow').checked = true; cmd({cmd: 'step'}); };
+$('resetBtn').onclick = () => { if (confirm('Reset the emulated PCM? RAM and the traffic log are cleared; breakpoints stay.')) cmd({cmd: 'reset'}); };
+$('ign').onchange = e => cmd({cmd: 'ignition', on: e.target.checked});
+$('clearCov').onclick = () => cmd({cmd: 'clear_coverage'}).then(pollCov);
+$('sciSend').onclick = () => sendHex($('sciHex').value);
+$('sciHex').onkeydown = e => { if (e.key === 'Enter') sendHex($('sciHex').value); };
+$('rdBtn').onclick = () => { const a = parseInt($('rdAddr').value, 16); if (isNaN(a)) return alert('Enter a hex address'); sendHex('26' + (a & 0xFFFFFF).toString(16).padStart(6, '0')); };
+document.querySelectorAll('button[data-hex]').forEach(b => b.onclick = () => sendHex(b.dataset.hex));
+document.querySelectorAll('button[data-mem]').forEach(b => b.onclick = () => setMem(parseInt(b.dataset.mem, 16)));
+$('memGo').onclick = () => { const a = parseInt($('memAddr').value, 16); if (!isNaN(a)) setMem(a); };
+$('memAddr').onkeydown = e => { if (e.key === 'Enter') $('memGo').click(); };
+$('memPrev').onclick = () => setMem(memAt - 256);
+$('memNext').onclick = () => setMem(memAt + 256);
+$('listGo').onclick = () => { const a = parseInt($('listAddr').value, 16); if (!isNaN(a)) setList(a); };
+$('listAddr').onkeydown = e => { if (e.key === 'Enter') $('listGo').click(); };
+$('follow').onchange = poll;
+$('listing').onclick = e => { const tr = e.target.closest('tr'); if (tr) cmd({cmd: 'breakpoint', addr: tr.dataset.a}); };
+$('map').onclick = e => { const a = mapAddr(e); setList(a); setMem(a); selectTab('tab-memory'); };
+$('map').onmousemove = e => { if (ident) $('mapHover').textContent = mapAddr(e).toString(16).toUpperCase().padStart(5, '0'); };
+$('map').onmouseleave = () => { $('mapHover').textContent = ''; };
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawMap);
+
+async function loadIdentity() {
+  ident = await api('/api/identity');
+  classes = Uint8Array.from(atob(ident.map.classes), c => c.charCodeAt(0));
+  covBits = null; lastMem = null; inputsBuilt = false;
+  $('ident').innerHTML = '<b>' + esc(ident.file) + '</b> · ' + ident.size.toLocaleString() + ' bytes · sha256 ' + ident.sha256.slice(0, 12) + '… · ' +
+    (ident.calibration ? 'calibration <b>' + esc(ident.calibration) + '</b> · ' : '') + 'reset → ' + ident.reset_pc +
+    (ident.reference ? ' · ' + ident.instructions.toLocaleString() + ' listed instructions' : '');
+  $('notice').textContent = ident.reference ? '' :
+    'This is not the reference image. Disassembly is raw (no operand formatting or function names), the map cannot tell code from data, ' +
+    'and the board stand-ins and the command reference below were derived from VIP_2A03, so this image may not boot or may answer differently.';
+}
+
+$('openBtn').onclick = () => $('openFile').click();
+$('openFile').onchange = async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  const r = await fetch('/api/load', {method: 'POST', headers: {'Content-Type': 'application/octet-stream', 'X-Filename': encodeURIComponent(f.name)}, body: f});
+  if (!r.ok) { alert('Could not open ' + f.name + ': ' + (await r.json()).error); return; }
+  lastConsole = '';
+  await loadIdentity(); poll(); pollCov();
+};
+
+// ---- SCI command reference -------------------------------------------------
+let ref = {session: [], commands: []}, curCmd = null, lastSentId = null;
+const effectTag = c => {
+  const e = (c.effects || '').toLowerCase();
+  if (/write|drive|clear/.test(e)) return '<span class="tag w">' + esc(c.effects) + '</span>';
+  if (/mode/.test(e)) return '<span class="tag m">' + esc(c.effects) + '</span>';
+  return '<span class="tag">' + esc(c.effects || 'unknown') + '</span>';
+};
+function drawCmdList() {
+  const q = $('cmdFilter').value.trim().toLowerCase();
+  const items = ref.commands.filter(c => !q || (c.id + ' ' + c.name + ' ' + c.summary + ' ' + c.effects).toLowerCase().includes(q));
+  $('cmdList').innerHTML = items.map(c => '<li role="option" tabindex="0" data-id="' + esc(c.id) + '" class="' + (curCmd && curCmd.id === c.id ? 'sel' : '') + '"><span class="cid">' +
+    esc(c.id) + '</span><span>' + esc(c.name) + '</span>' + effectTag(c) + '</li>').join('') || '<li>No command matches.</li>';
+}
+function argHex(c) {
+  let h = c.id;
+  for (const [i, a] of (c.args || []).entries()) {
+    const v = ($('arg' + i).value || '').replace(/\s|0x/gi, '');
+    if (!/^[0-9a-f]*$/i.test(v) || v.length > a.bytes * 2) throw new Error(a.name + ' must be ' + a.bytes + ' byte' + (a.bytes > 1 ? 's' : '') + ' of hex');
+    h += v.padStart(a.bytes * 2, '0');
+  }
+  return h.toUpperCase();
+}
+function showCmd(id) {
+  const c = ref.commands.find(x => x.id === id);
+  if (!c) return;
+  curCmd = c; drawCmdList();
+  const list = a => (a && a.length) ? '<ul>' + a.map(h => '<li>' + esc(h) + '</li>').join('') + '</ul>' : '';
+  const args = (c.args || []).map((a, i) => '<div class="argrow"><label for="arg' + i + '">' + esc(a.name) + ' <span class="hint">(' + a.bytes + 'B)</span></label>' +
+    '<input type="text" id="arg' + i + '" size="' + (a.bytes * 2 + 1) + '" value="' + esc(a.default || '') + '"><span class="hint">' + esc(a.hint || '') + '</span></div>').join('');
+  const writes = /write|drive|clear/i.test(c.effects || '');
+  $('cmdDetail').innerHTML =
+    '<h3><span class="mono">' + esc(c.id) + '</span> · ' + esc(c.name) + '</h3>' +
+    '<div class="row">' + effectTag(c) + (c.handler ? '<span class="tag">handler ' + esc(c.handler) + '</span>' : '') +
+      (c.depends_on_coprocessor ? '<span class="tag m">needs co-processor: reply not meaningful in emulator</span>' : '') + '</div>' +
+    '<p>' + esc(c.summary || '') + '</p>' +
+    '<h4>Send</h4>' + (args || '<p class="note" style="margin:0 0 6px">No arguments.</p>') +
+    '<div class="row"><button class="primary" id="cmdSend">Send ' + esc(c.id) + '</button><button id="cmdBp" ' + (c.handler ? '' : 'hidden') + '>Break at handler</button>' +
+      '<span class="mono" id="cmdResult"></span></div>' +
+    (writes ? '<p class="note alert" style="margin-top:0">This command changes state. In the emulator that is harmless; on a vehicle it is not.</p>' : '') +
+    '<h4>Reply</h4><p>' + esc(c.reply || 'Not documented.') + '</p>' +
+    (c.hints && c.hints.length ? '<h4>Hints</h4>' + list(c.hints) : '') +
+    '<h4>Security</h4><p>' + esc(c.security || 'none') + '</p>' +
+    (c.examples && c.examples.length ? '<h4>Examples</h4>' + c.examples.map(e => '<div class="ex"><button data-ex="' + esc(e.hex) + '">' + hexBytes(e.hex) + '</button><span>' + esc(e.note || '') + '</span>' +
+      (e.observed ? '<span class="obs">emulator: ' + esc(e.observed) + '</span>' : '') + '</div>').join('') : '') +
+    '<h4>Confidence</h4><p>' + esc(c.confidence || '') + '</p>';
+  $('cmdSend').onclick = () => { try { lastSentId = null; const h = argHex(c); sendHex(h); watchResult(); } catch (err) { alert(err.message); } };
+  $('cmdBp').onclick = () => { setList(parseInt(c.handler, 16)); cmd({cmd: 'breakpoint', addr: c.handler}); };
+  $('cmdDetail').querySelectorAll('button[data-ex]').forEach(b => b.onclick = () => { sendHex(b.dataset.ex); watchResult(); });
+}
+function watchResult() {
+  // Show the outcome of the request just sent next to the Send button.
+  const before = state && state.sci.length ? state.sci[state.sci.length - 1].id : 0;
+  let tries = 0;
+  const t = setInterval(() => {
+    const el = $('cmdResult'); if (!el || ++tries > 40) return clearInterval(t);
+    const r = state && state.sci.find(x => x.id > before);
+    if (!r) return;
+    const n = r.tx.length, done = r.status === 'no echo' || r.rx.length >= n;
+    if (r.status === 'no echo') el.innerHTML = '<span class="alert">no echo after ' + (r.rx.length / 2) + ' of ' + (n / 2) + ' bytes</span>';
+    else if (done) el.textContent = '← ' + (r.rx.length > n ? 'reply ' + hexBytes(r.rx.slice(n)) : 'echoed, no data yet');
+    if (r.status === 'no echo' || tries > 12) clearInterval(t);
+  }, 300);
+}
+function selectTab(id) {
+  document.querySelectorAll('.tabs [role=tab]').forEach(t => {
+    const on = t.id === id;
+    t.setAttribute('aria-selected', String(on));
+    t.tabIndex = on ? 0 : -1;
+    $(t.getAttribute('aria-controls')).hidden = !on;
+  });
+  try { localStorage.setItem('emu-tab', id); } catch (e) {}
+}
+document.querySelectorAll('.tabs [role=tab]').forEach(t => {
+  t.onclick = () => selectTab(t.id);
+  t.onkeydown = e => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const tabs = [...document.querySelectorAll('.tabs [role=tab]')];
+    const next = tabs[(tabs.indexOf(t) + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+    selectTab(next.id); next.focus();
+  };
+});
+try { const saved = localStorage.getItem('emu-tab'); if (saved && $(saved)) selectTab(saved); } catch (e) {}
+$('cmdFilter').oninput = drawCmdList;
+$('cmdList').onclick = e => { const li = e.target.closest('li[data-id]'); if (li) showCmd(li.dataset.id); };
+$('cmdList').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { const li = e.target.closest('li[data-id]'); if (li) { e.preventDefault(); showCmd(li.dataset.id); } } };
+
+$('modeDriver').onclick = () => { setViewMode('driver'); poll(); };
+$('modeEngineer').onclick = () => { setViewMode('engineer'); poll(); };
+(async () => {
+  await loadIdentity();
+  await loadDriverData();
+  let mode = 'driver';
+  try { mode = localStorage.getItem('emu-mode') || 'driver'; } catch (e) {}
+  setViewMode(mode);
+  poll(); pollCov();
+  setInterval(poll, 300); setInterval(pollCov, 1000);
+  try {
+    ref = await api('/api/commands');
+    $('cmdSource').innerHTML = (ref.commands.length ? ref.commands.length + ' commands. ' : 'No reference data found. ') + esc(ref.source || '') +
+      (ref.session && ref.session.length ? '<details class="rules"><summary>Session rules</summary><ul>' + ref.session.map(h => '<li>' + esc(h) + '</li>').join('') + '</ul></details>' : '');
+    drawCmdList();
+    if (ref.commands.length) showCmd(ref.commands[0].id);
+  } catch (e) { $('cmdSource').textContent = 'Could not load the command reference.'; }
+})();
+</script>
+</body>
+</html>

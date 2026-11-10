@@ -1,0 +1,20 @@
+{
+ "python": [
+  "emulator/cpu16.py",
+  "emulator/machine.py",
+  "emulator/board.py",
+  "emulator/emu.py",
+  "emulator/gui.py",
+  "emulator/gauges.json",
+  "emulator/faults.json",
+  "emulator/outputs.json",
+  "emulator/tables_view.json",
+  "emulator/sensor_curves.json",
+  "emulator/scenarios.json",
+  "emulator/speed_calibration.json",
+  "emulator/sci_commands.json",
+  "dumps/VIP_2A03.ori",
+  "recovered/instructions.tsv",
+  "recovered/data/service_manual_evidence.json"
+ ]
+}
