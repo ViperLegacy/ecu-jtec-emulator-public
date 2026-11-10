@@ -377,6 +377,23 @@ function render(s) {
 
   const html = s.sci.map(r => {
     const tx = hexBytes(r.tx), n = r.tx.length;
+    if (r.kinds) {
+      // High-speed mode: one reply per byte, either its echo or a RAM byte.
+      const sent = r.tx.match(/../g) || [], got = r.rx.match(/../g) || [];
+      let k = 0;
+      const parts = sent.map((b, i) => {
+        const kind = r.kinds[i];
+        if (kind === 'none') return '<span class="tx">' + b.toUpperCase() + ' (no reply)</span>';
+        const v = got[k++];
+        if (v === undefined) return '<span class="tx">' + b.toUpperCase() + ' …</span>';
+        if (kind === 'echo') return v === b ? '<span class="tx">' + b.toUpperCase() + ' ✓</span>' : '<span class="bad">' + b.toUpperCase() + '→' + v.toUpperCase() + '</span>';
+        return (kind === 'table' ? 'table ' + b.toUpperCase() : kind) + ' = <b>' + v.toUpperCase() + '</b>';
+      });
+      const extra = got.slice(k);
+      return '<div class="tx">→ ' + tx + '</div><div class="rx">← ' + parts.join(' · ') +
+        (extra.length ? ' · then <b>' + extra.join(' ').toUpperCase() + '</b>' : '') +
+        (r.status === 'no echo' ? ' <span class="bad">(stopped: no reply)</span>' : '') + '</div>';
+    }
     if (!n) return '<div class="rx">← <b>' + hexBytes(r.rx) + '</b> <span class="tx">(unsolicited)</span></div>';
     const echo = r.rx.slice(0, n), reply = r.rx.slice(n);
     let line = '<div class="tx">→ ' + tx + '</div>';

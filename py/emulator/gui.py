@@ -247,9 +247,53 @@ class Session:
         self.requests.append(req)
         return req
 
+    def _hs_kinds(self, data):
+        """What each byte's reply will be, following the high-speed protocol.
+
+        In high-speed mode (after 12) most bytes are answered with one RAM
+        byte instead of an echo; the console needs to know which is which.
+        Returns a list of 'echo', 'none' or a RAM address per byte.
+        """
+        hs = getattr(self, "_hs", None)
+        if hs is None or (not self.pending and not self.awaiting and self.m.sci_baud() < 20000):
+            hs = {"on": False, "page": 0, "want_page": False}
+        kinds = []
+        for b in data:
+            if not hs["on"]:
+                kinds.append("echo")
+                if b == 0x12:
+                    hs.update(on=True, page=0, want_page=False)
+            elif hs["want_page"]:
+                hs["want_page"] = False
+                if b < 0x10:
+                    hs["page"] = b
+                    kinds.append("echo")
+                else:
+                    hs["on"] = False            # page 10 or above: silent exit
+                    kinds.append("none")
+            elif b == 0xF6:
+                hs["want_page"] = True
+                kinds.append("echo")
+            elif b == 0xF2:
+                hs["page"] = 0
+                kinds.append("echo")
+            elif b in (0xF4, 0xF5):
+                hs["page"] = None               # table read: address not known here
+                kinds.append("echo")
+            elif b == 0xFE:
+                hs["on"] = False
+                kinds.append("echo")
+            else:
+                kinds.append("table" if hs["page"] is None else "%05X" % (0xF8000 + hs["page"] * 0x100 + b))
+        self._hs = hs
+        return kinds
+
     def sci_send(self, data):
         with self.lock:
+            kinds = self._hs_kinds(data)
             req = self._new_request(data)
+            if any(k != "echo" for k in kinds) or 0x12 in data:
+                req["kinds"] = kinds
             self.pending.extend((req, b) for b in data)
 
     # ---- car-level view over the optional data files ---------------------------

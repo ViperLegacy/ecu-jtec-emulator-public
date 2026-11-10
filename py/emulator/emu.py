@@ -49,6 +49,50 @@ def transact(m, request, echo_timeout=40, quiet=12, max_reply=64):
     return bytes(echoes), bytes(reply)
 
 
+HIGH_SPEED_CONTROL = (0xF2, 0xF4, 0xF5, 0xF6, 0xFE)     # taken as mode bytes, never as offsets
+RAM_BASE, RAM_PAGES = 0xF8000, 16
+
+
+def exchange(m, byte, timeout_bytes=60):
+    """Send one byte and return the one byte the PCM answers with, or None."""
+    mark = len(m.sci_tx)
+    m.sci_send([byte])
+    m.run(timeout_bytes * m.sci_byte_insns(), until=lambda m: len(m.sci_tx) > mark)
+    return m.sci_tx[mark][1] if len(m.sci_tx) > mark else None
+
+
+def read_ram_highspeed(m, pages=range(RAM_PAGES)):
+    """Read F8000..F8FFF with command 12 and F6 page reads.
+
+    Returns {address: byte} for every byte the PCM returned. Offsets F2, F4,
+    F5, F6 and FE cannot be read this way and are absent. Raises RuntimeError
+    if an echo is wrong or missing, after trying to leave high-speed mode.
+    """
+    def expect(byte, what):
+        got = exchange(m, byte)
+        if got != byte:
+            raise RuntimeError("%s: sent %02X, got %s" % (what, byte, "nothing" if got is None else "%02X" % got))
+
+    expect(0x12, "enter high-speed mode")
+    m.run(m.sci_byte_insns())               # the PCM switches rate after its echo has gone out
+    out = {}
+    try:
+        for page in pages:
+            expect(0xF6, "page select")
+            expect(page, "page %X" % page)
+            for off in range(256):
+                if off in HIGH_SPEED_CONTROL:
+                    continue
+                v = exchange(m, off)
+                if v is None:
+                    raise RuntimeError("no reply for %05X" % (RAM_BASE + page * 0x100 + off))
+                out[RAM_BASE + page * 0x100 + off] = v
+    finally:
+        exchange(m, 0xFE)                   # leave high-speed mode even after an error
+        m.run(m.sci_byte_insns())
+    return out
+
+
 def read_memory(m, address):
     """SCI service 26: read one byte of main-CPU memory. None if refused."""
     req = bytes([0x26, address >> 16 & 0xFF, address >> 8 & 0xFF, address & 0xFF])
